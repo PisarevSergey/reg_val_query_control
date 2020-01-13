@@ -1,6 +1,7 @@
 #include "rvqc_common.h"
+#include "main.tmh"
 
-extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT /*win_driver*/, PUNICODE_STRING)
+extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver, PUNICODE_STRING)
 {
-  return STATUS_UNSUCCESSFUL;
+  return create_driver(driver);
 }
