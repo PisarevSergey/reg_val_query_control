@@ -17,23 +17,97 @@ namespace driver_cpp
     }
   };
 
-  class fltmgr_driver : public wpp_tracing_driver
+  class registry_dispatcher_driver : public wpp_tracing_driver
   {
   public:
-    fltmgr_driver(NTSTATUS& stat, PDRIVER_OBJECT driver) : filter(nullptr)
+    registry_dispatcher_driver(NTSTATUS& stat)
     {
-      FLT_REGISTRATION freg = { 0 };
-      freg.Size = sizeof(freg);
-      freg.Version = FLT_REGISTRATION_VERSION;
-      freg.FilterUnloadCallback = unload;
-      stat = FltRegisterFilter(driver, &freg, &filter);
+      reg_disp.reset(registry_dispatcher::create_dispatcher(stat));
+
       if (NT_SUCCESS(stat))
       {
-        info_message(DRIVER, "FltRegisterFilter success");
+        info_message(DRIVER, "registry_dispatcher::create_dispatcher success");
       }
       else
       {
-        error_message(DRIVER, "FltRegisterFilter failed with status %!STATUS!", stat);
+        error_message(DRIVER, "registry_dispatcher::create_dispatcher failed with status %!STATUS!", stat);
+      }
+    }
+
+  protected:
+    smart_pointers::auto_pointer<registry_dispatcher::dispatcher> reg_disp;
+  };
+
+  class registry_callback_driver : public registry_dispatcher_driver
+  {
+  public:
+    registry_callback_driver(NTSTATUS& stat, PDRIVER_OBJECT driver) : registry_dispatcher_driver(stat), callback_registered{ false }
+    {
+      if (NT_SUCCESS(stat))
+      {
+        const UNICODE_STRING altitude = RTL_CONSTANT_STRING(L"364297");
+        stat = CmRegisterCallbackEx(callback, &altitude, driver, reg_disp.get(), &cookie, nullptr);
+        if (NT_SUCCESS(stat))
+        {
+          callback_registered = true;
+          info_message(DRIVER, "CmRegisterCallbackEx success");
+        }
+        else
+        {
+          error_message(DRIVER, "CmRegisterCallbackEx failed with status %!STATUS!", stat);
+        }
+      }
+    }
+
+    ~registry_callback_driver()
+    {
+      if (callback_registered)
+      {
+        verbose_message(DRIVER, "starting registry callback unregister");
+        CmUnRegisterCallback(cookie);
+        verbose_message(DRIVER, "finished registry callback unregister");
+      }
+    }
+
+    union reg_notify_class_caster
+    {
+      void* ptr;
+      REG_NOTIFY_CLASS op;
+    };
+
+    static NTSTATUS callback(void* ctx, void* reg_op, void* reg_op_info)
+    {
+      reg_notify_class_caster caster;
+      caster.ptr = reg_op;
+
+      return static_cast<registry_dispatcher::dispatcher*>(ctx)->callback(caster.op, reg_op_info);
+    }
+  private:
+    LARGE_INTEGER cookie;
+    bool callback_registered;
+  };
+
+  class fltmgr_driver : public registry_callback_driver
+  {
+  public:
+    fltmgr_driver(NTSTATUS& stat, PDRIVER_OBJECT driver) : filter{ nullptr }, registry_callback_driver(stat, driver)
+    {
+      if (NT_SUCCESS(stat))
+      {
+        FLT_REGISTRATION freg = { 0 };
+        freg.Size = sizeof(freg);
+        freg.Version = FLT_REGISTRATION_VERSION;
+        freg.FilterUnloadCallback = unload;
+        stat = FltRegisterFilter(driver, &freg, &filter);
+        if (NT_SUCCESS(stat))
+        {
+          info_message(DRIVER, "FltRegisterFilter success");
+        }
+        else
+        {
+          filter = nullptr;
+          error_message(DRIVER, "FltRegisterFilter failed with status %!STATUS!", stat);
+        }
       }
     }
 
@@ -50,7 +124,9 @@ namespace driver_cpp
     static NTSTATUS unload(FLT_FILTER_UNLOAD_FLAGS)
     {
       info_message(DRIVER, "unloading");
+      info_message(DRIVER, "starting driver destruction");
       delete get_driver();
+      info_message(DRIVER, "finished driver destruction");
 
       return STATUS_SUCCESS;
     }

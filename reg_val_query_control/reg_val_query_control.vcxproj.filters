@@ -38,12 +38,24 @@
     <ClInclude Include="tracing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="registry_dispatcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="support.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="smart_pointers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="driver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="registry_dispatcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

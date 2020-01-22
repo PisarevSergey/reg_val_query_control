@@ -104,6 +104,7 @@
     <ClCompile>
       <WppEnabled>true</WppEnabled>
       <WppScanConfigurationData>tracing.h</WppScanConfigurationData>
+      <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions);POOL_NX_OPTIN=1</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -113,6 +114,7 @@
     <ClCompile>
       <WppEnabled>true</WppEnabled>
       <WppScanConfigurationData>tracing.h</WppScanConfigurationData>
+      <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions);POOL_NX_OPTIN=1</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,6 +124,7 @@
     <ClCompile>
       <WppEnabled>true</WppEnabled>
       <WppScanConfigurationData>tracing.h</WppScanConfigurationData>
+      <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions);POOL_NX_OPTIN=1</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -131,6 +134,7 @@
     <ClCompile>
       <WppEnabled>true</WppEnabled>
       <WppScanConfigurationData>tracing.h</WppScanConfigurationData>
+      <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions);POOL_NX_OPTIN=1</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -138,12 +142,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="driver.h" />
+    <ClInclude Include="registry_dispatcher.h" />
     <ClInclude Include="rvqc_common.h" />
+    <ClInclude Include="smart_pointers.h" />
+    <ClInclude Include="support.h" />
     <ClInclude Include="tracing.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="driver.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="registry_dispatcher.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
