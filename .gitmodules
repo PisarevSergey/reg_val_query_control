@@ -1,0 +1,3 @@
+[submodule "win_kernel_lib"]
+	path = win_kernel_lib
+	url = https://github.com/PisarevSergey/win_kernel_lib.git

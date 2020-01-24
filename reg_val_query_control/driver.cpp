@@ -35,7 +35,7 @@ namespace driver_cpp
     }
 
   protected:
-    smart_pointers::auto_pointer<registry_dispatcher::dispatcher> reg_disp;
+    win_kernel_lib::smart_pointers::auto_pointer<registry_dispatcher::dispatcher> reg_disp;
   };
 
   class registry_callback_driver : public registry_dispatcher_driver
@@ -67,6 +67,11 @@ namespace driver_cpp
         CmUnRegisterCallback(cookie);
         verbose_message(DRIVER, "finished registry callback unregister");
       }
+    }
+
+    PLARGE_INTEGER get_reg_cookie()
+    {
+      return &cookie;
     }
 
     union reg_notify_class_caster

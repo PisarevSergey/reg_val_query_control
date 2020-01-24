@@ -76,25 +76,25 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>$(SolutionDir)out\$(ConfigurationName)\$(PlatformShortName)\</OutDir>
-    <IntDir>$(ProjectDir)tmp\$(ConfigurationName)\$(PlatformShortName)\</IntDir>
+    <IntDir>tmp\$(ConfigurationName)\$(PlatformShortName)\</IntDir>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>$(SolutionDir)out\$(ConfigurationName)\$(PlatformShortName)\</OutDir>
-    <IntDir>$(ProjectDir)tmp\$(ConfigurationName)\$(PlatformShortName)\</IntDir>
+    <IntDir>tmp\$(ConfigurationName)\$(PlatformShortName)\</IntDir>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>$(SolutionDir)out\$(ConfigurationName)\$(PlatformShortName)\</OutDir>
-    <IntDir>$(ProjectDir)tmp\$(ConfigurationName)\$(PlatformShortName)\</IntDir>
+    <IntDir>tmp\$(ConfigurationName)\$(PlatformShortName)\</IntDir>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>$(SolutionDir)out\$(ConfigurationName)\$(PlatformShortName)\</OutDir>
-    <IntDir>$(ProjectDir)tmp\$(ConfigurationName)\$(PlatformShortName)\</IntDir>
+    <IntDir>tmp\$(ConfigurationName)\$(PlatformShortName)\</IntDir>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -105,6 +105,7 @@
       <WppEnabled>true</WppEnabled>
       <WppScanConfigurationData>tracing.h</WppScanConfigurationData>
       <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions);POOL_NX_OPTIN=1</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)win_kernel_lib\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -115,6 +116,7 @@
       <WppEnabled>true</WppEnabled>
       <WppScanConfigurationData>tracing.h</WppScanConfigurationData>
       <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions);POOL_NX_OPTIN=1</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)win_kernel_lib\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -125,6 +127,7 @@
       <WppEnabled>true</WppEnabled>
       <WppScanConfigurationData>tracing.h</WppScanConfigurationData>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions);POOL_NX_OPTIN=1</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)win_kernel_lib\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -135,6 +138,7 @@
       <WppEnabled>true</WppEnabled>
       <WppScanConfigurationData>tracing.h</WppScanConfigurationData>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions);POOL_NX_OPTIN=1</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)win_kernel_lib\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -144,7 +148,6 @@
     <ClInclude Include="driver.h" />
     <ClInclude Include="registry_dispatcher.h" />
     <ClInclude Include="rvqc_common.h" />
-    <ClInclude Include="smart_pointers.h" />
     <ClInclude Include="support.h" />
     <ClInclude Include="tracing.h" />
   </ItemGroup>
@@ -152,6 +155,7 @@
     <ClCompile Include="driver.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="registry_dispatcher.cpp" />
+    <ClCompile Include="support.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
