@@ -9,7 +9,7 @@ namespace registry_dispatcher
 
     virtual ~dispatcher() {}
 
-    void __cdecl operator delete(void*);
+    void __cdecl operator delete(void*) { ASSERT(FALSE); }
   };
 
   dispatcher* create_dispatcher(NTSTATUS& stat);

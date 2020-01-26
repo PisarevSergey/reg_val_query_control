@@ -39,28 +39,27 @@ namespace registry_dispatcher_cpp
     }
 
   private:
-    void dispatch_post_query_value_key(REG_POST_OPERATION_INFORMATION* op_info)
+    void dispatch_post_query_value_key(REG_POST_OPERATION_INFORMATION* post_op_info)
     {
-      switch (static_cast<REG_QUERY_VALUE_KEY_INFORMATION*>(op_info->PreInformation)->KeyValueInformationClass)
+      if (NT_SUCCESS(post_op_info->Status))
       {
-      case KeyValueFullInformation:
-        //KEY_VALUE_FULL_INFORMATION;
+        auto pre_info{ static_cast<const REG_QUERY_VALUE_KEY_INFORMATION*>(post_op_info->PreInformation) };
+
+        reg_data_decoding::decoded_data operation_data;
+        switch (pre_info->KeyValueInformationClass)
+        {
+        case KeyValueFullInformation:
+        case KeyValueFullInformationAlign64:
+        case KeyValuePartialInformation:
+        case KeyValuePartialInformationAlign64:
+        {
+          NTSTATUS stat = reg_data_decoding::decode_query_value_key_information(pre_info,
+            (UserMode == ExGetPreviousMode()),
+            operation_data);
+          stat = stat;
+        }
         break;
-      case KeyValuePartialInformation:
-        //KEY_VALUE_PARTIAL_INFORMATION;
-        break;
-      case KeyValueFullInformationAlign64:
-      {
-        auto info{ static_cast<const KEY_VALUE_FULL_INFORMATION*>(support::align_up(static_cast<REG_QUERY_VALUE_KEY_INFORMATION*>(op_info->PreInformation)->KeyValueInformation, 8)) };
-        info = info;
-      }
-        break;
-      case KeyValuePartialInformationAlign64:
-      {
-        auto info{static_cast<const KEY_VALUE_PARTIAL_INFORMATION*>(support::align_up(static_cast<REG_QUERY_VALUE_KEY_INFORMATION*>(op_info->PreInformation)->KeyValueInformation, 8))};
-        info = info;
-      }
-        break;
+        }
       }
     }
 
@@ -75,15 +74,16 @@ namespace registry_dispatcher_cpp
     {
       return ExAllocatePoolWithTag(NonPagedPool, sz, 'sidR');
     }
-  };
-}
 
-void __cdecl registry_dispatcher::dispatcher::operator delete(void* p)
-{
-  if (p)
-  {
-    ExFreePool(p);
-  }
+    void __cdecl operator delete(void* p)
+    {
+      if (p)
+      {
+        ExFreePool(p);
+      }
+    }
+
+  };
 }
 
 registry_dispatcher::dispatcher* registry_dispatcher::create_dispatcher(NTSTATUS& stat)
