@@ -99,7 +99,6 @@ namespace registry_dispatcher_cpp
             pre_info->BufferLength,
             sizeof(*pre_info->BufferLength),
             user_mode_access) };
-
         if (NT_SUCCESS(stat))
         {
         }

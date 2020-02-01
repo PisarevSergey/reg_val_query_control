@@ -44,6 +44,9 @@
     <ClInclude Include="reg_data_decoding.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="value_modifier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -59,6 +62,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="reg_data_decoding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="value_modifier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
