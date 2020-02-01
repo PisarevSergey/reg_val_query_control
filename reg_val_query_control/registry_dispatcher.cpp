@@ -29,16 +29,14 @@ namespace registry_dispatcher_cpp
       switch (reg_op)
       {
       case RegNtPostQueryValueKey:
+        verbose_message(REGISTRY_DISPATCHER, "RegNtPostQueryValueKey operation");
         dispatch_post_query_value_key(static_cast<REG_POST_OPERATION_INFORMATION*>(reg_op_data));
         break;
       case RegNtPostQueryMultipleValueKey:
+        verbose_message(REGISTRY_DISPATCHER, "RegNtPostQueryMultipleValueKey operation");
         dispatch_post_query_multiple_value_key(static_cast<REG_POST_OPERATION_INFORMATION*>(reg_op_data));
         break;
       }
-      //RegNtPreQueryValueKey	REG_QUERY_VALUE_KEY_INFORMATION
-      //RegNtPostQueryValueKey	REG_POST_OPERATION_INFORMATION
-      //RegNtPreQueryMultipleValueKey	REG_QUERY_MULTIPLE_VALUE_KEY_INFORMATION
-      //RegNtPostQueryMultipleValueKey	REG_POST_OPERATION_INFORMATION
 
       return STATUS_SUCCESS;
     }
@@ -48,6 +46,8 @@ namespace registry_dispatcher_cpp
     {
       if (NT_SUCCESS(post_op_info->Status))
       {
+        verbose_message(REGISTRY_DISPATCHER, "operation completed successfully, dispatching");
+
         auto pre_info{ static_cast<const REG_QUERY_VALUE_KEY_INFORMATION*>(post_op_info->PreInformation) };
 
         switch (pre_info->KeyValueInformationClass)
@@ -61,10 +61,21 @@ namespace registry_dispatcher_cpp
           NTSTATUS stat = reg_data_decoding::decode_query_value_key_information(pre_info,
             (UserMode == ExGetPreviousMode()),
             operation_data);
-          stat = stat;
+          if (NT_SUCCESS(stat))
+          {
+            verbose_message(REGISTRY_DISPATCHER, "successfully decoded data");
+          }
+          else
+          {
+            error_message(REGISTRY_DISPATCHER, "failed to decode data with status %!STATUS!", stat);
+          }
         }
         break;
         }
+      }
+      else
+      {
+        verbose_message(REGISTRY_DISPATCHER, "operation failed, skipping");
       }
     }
 
@@ -74,22 +85,30 @@ namespace registry_dispatcher_cpp
       {
         if (NT_SUCCESS(post_op_info->Status))
         {
+          verbose_message(REGISTRY_DISPATCHER, "operation completed successfully, dispatching");
         }
         else
         {
+          verbose_message(REGISTRY_DISPATCHER, "operation failed, skipping");
           break;
         }
 
         auto pre_info{ static_cast<REG_QUERY_MULTIPLE_VALUE_KEY_INFORMATION*>(post_op_info->PreInformation) };
+
         const size_t value_entries_size{ pre_info->EntryCount * sizeof(pre_info->ValueEntries[0]) };
+        verbose_message(REGISTRY_DISPATCHER, "value entries size is %llu", value_entries_size);
+
         const bool user_mode_access{ UserMode == ExGetPreviousMode() };
+        verbose_message(REGISTRY_DISPATCHER, "%s mode access", (user_mode_access ? "user" : "kernel"));
 
         if (!user_mode_access ||
             safe_user_mode_data_access::is_valid_user_address(pre_info->ValueEntries, value_entries_size))
         {
+          verbose_message(REGISTRY_DISPATCHER, "value entries buffer valid");
         }
         else
         {
+          error_message(REGISTRY_DISPATCHER, "value entries buffer invalid");
           break;
         }
 
@@ -101,33 +120,49 @@ namespace registry_dispatcher_cpp
             user_mode_access) };
         if (NT_SUCCESS(stat))
         {
+          verbose_message(REGISTRY_DISPATCHER, "max buffer size is %x", max_buffer_size);
         }
         else
         {
+          error_message(REGISTRY_DISPATCHER, "safe_user_mode_data_access::copy_data failed with status %!STATUS!", stat);
           break;
         }
 
         if ((!user_mode_access) ||
           safe_user_mode_data_access::is_valid_user_address(pre_info->ValueBuffer, max_buffer_size, false))
         {
+          verbose_message(REGISTRY_DISPATCHER, "value buffer valid");
         }
         else
         {
+          error_message(REGISTRY_DISPATCHER, "value buffer invalid");
           break;
         }
 
         const char* const value_buffer_start{ reinterpret_cast<char*>(pre_info->ValueBuffer) };
-        const char* const value_buffer_end{ value_buffer_start + max_buffer_size };
+        verbose_message(REGISTRY_DISPATCHER, "value buffer starts at %p", value_buffer_start);
 
+        const char* const value_buffer_end{ value_buffer_start + max_buffer_size };
+        verbose_message(REGISTRY_DISPATCHER, "value buffer ends before %p", value_buffer_end);
+
+        reg_data_decoding::decoded_data operation_data;
         for (decltype(pre_info->EntryCount) i{ 0 }; i < pre_info->EntryCount; ++i)
         {
-          reg_data_decoding::decoded_data operation_data;
+          verbose_message(REGISTRY_DISPATCHER, "decoding entry number %x", i);
           stat = reg_data_decoding::decode_single_value_entry(pre_info,
             pre_info->ValueEntries + i,
             value_buffer_start,
             value_buffer_end,
             user_mode_access,
             operation_data);
+          if (NT_SUCCESS(stat))
+          {
+            verbose_message(REGISTRY_DISPATCHER, "decoding success");
+          }
+          else
+          {
+            error_message(REGISTRY_DISPATCHER, "decoding failed with status %!STATUS!", stat);
+          }
         }
 
       } while (false);
