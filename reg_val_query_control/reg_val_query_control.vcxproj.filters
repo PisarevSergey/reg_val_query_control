@@ -47,6 +47,9 @@
     <ClInclude Include="value_modifier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\common_includes\um_km_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

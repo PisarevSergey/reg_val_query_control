@@ -106,7 +106,7 @@
       <WppEnabled>true</WppEnabled>
       <WppScanConfigurationData>tracing.h</WppScanConfigurationData>
       <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions);POOL_NX_OPTIN=1</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)win_kernel_lib\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)win_kernel_lib\inc;$(SolutionDir)common_includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -118,7 +118,7 @@
       <WppEnabled>true</WppEnabled>
       <WppScanConfigurationData>tracing.h</WppScanConfigurationData>
       <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions);POOL_NX_OPTIN=1</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)win_kernel_lib\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)win_kernel_lib\inc;$(SolutionDir)common_includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -130,7 +130,7 @@
       <WppEnabled>true</WppEnabled>
       <WppScanConfigurationData>tracing.h</WppScanConfigurationData>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions);POOL_NX_OPTIN=1</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)win_kernel_lib\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)win_kernel_lib\inc;$(SolutionDir)common_includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -142,13 +142,14 @@
       <WppEnabled>true</WppEnabled>
       <WppScanConfigurationData>tracing.h</WppScanConfigurationData>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions);POOL_NX_OPTIN=1</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)win_kernel_lib\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)win_kernel_lib\inc;$(SolutionDir)common_includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common_includes\um_km_common.h" />
     <ClInclude Include="driver.h" />
     <ClInclude Include="registry_dispatcher.h" />
     <ClInclude Include="reg_data_decoding.h" />

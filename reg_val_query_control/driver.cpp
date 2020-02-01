@@ -3,6 +3,8 @@
 
 #include <smart_pointers.h>
 
+#include <um_km_common.h>
+
 #include "tracing.h"
 #include "driver.tmh"
 
@@ -55,7 +57,7 @@ namespace driver_cpp
   class registry_callback_driver : public registry_dispatcher_driver
   {
   public:
-    registry_callback_driver(NTSTATUS& stat, PDRIVER_OBJECT driver) : registry_dispatcher_driver(stat), callback_registered{ false }
+    registry_callback_driver(NTSTATUS& stat, PDRIVER_OBJECT driver) : registry_dispatcher_driver{ stat }, callback_registered{ false }
     {
       if (NT_SUCCESS(stat))
       {
@@ -109,7 +111,7 @@ namespace driver_cpp
   class fltmgr_driver : public registry_callback_driver
   {
   public:
-    fltmgr_driver(NTSTATUS& stat, PDRIVER_OBJECT driver) : filter{ nullptr }, registry_callback_driver(stat, driver)
+    fltmgr_driver(NTSTATUS& stat, PDRIVER_OBJECT driver) : filter{ nullptr }, registry_callback_driver{ stat, driver }
     {
       if (NT_SUCCESS(stat))
       {
@@ -150,15 +152,131 @@ namespace driver_cpp
       return STATUS_SUCCESS;
     }
 
-  private:
+  protected:
     PFLT_FILTER filter;
   };
 
-
-  class top_driver final : public fltmgr_driver
+  class communication_port_driver : public fltmgr_driver
   {
   public:
-    top_driver(NTSTATUS& stat, PDRIVER_OBJECT driver) : fltmgr_driver(stat, driver)
+    communication_port_driver(NTSTATUS& stat, PDRIVER_OBJECT driver) : server_port{ nullptr }, client_port{nullptr}, fltmgr_driver{ stat, driver }
+    {
+      if (NT_SUCCESS(stat))
+      {
+        PSECURITY_DESCRIPTOR desc{ nullptr };
+        stat = FltBuildDefaultSecurityDescriptor(&desc, FLT_PORT_ALL_ACCESS);
+        if (NT_SUCCESS(stat))
+        {
+          info_message(DRIVER, "FltBuildDefaultSecurityDescriptor success");
+
+          UNICODE_STRING port_name = RTL_CONSTANT_STRING(um_km_common::communication_port_name);
+
+          OBJECT_ATTRIBUTES oa;
+          InitializeObjectAttributes(&oa, &port_name, OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE, 0, desc);
+
+          stat = FltCreateCommunicationPort(filter,
+            &server_port,
+            &oa,
+            this,
+            connect,
+            disconnect,
+            on_message,
+            1);
+          if (NT_SUCCESS(stat))
+          {
+            info_message(DRIVER, "FltCreateCommunicationPort success");
+          }
+          else
+          {
+            error_message(DRIVER, "FltCreateCommunicationPort failed with status %!STATUS!", stat);
+            server_port = nullptr;
+          }
+
+          FltFreeSecurityDescriptor(desc);
+        }
+        else
+        {
+          error_message(DRIVER, "FltBuildDefaultSecurityDescriptor failed with status %!STATUS!", stat);
+        }
+      }
+    }
+
+    ~communication_port_driver()
+    {
+      if (server_port)
+      {
+        verbose_message(DRIVER, "closing server port");
+        FltCloseCommunicationPort(server_port);
+        verbose_message(DRIVER, "server port closed");
+        server_port = nullptr;
+      }
+    }
+
+    static NTSTATUS connect(PFLT_PORT client_port_parameter,
+      void* server_port_cookie,
+      void* connection_context,
+      ULONG size_of_context,
+      void** connection_port_cookie)
+    {
+      *connection_port_cookie = server_port_cookie;
+      return static_cast<communication_port_driver*>(server_port_cookie)->connect(client_port_parameter, connection_context, size_of_context);
+    }
+
+    static void disconnect(void* connection_cookie)
+    {
+      static_cast<communication_port_driver*>(connection_cookie)->disconnect();
+    }
+
+    static NTSTATUS on_message(void* port_cookie,
+      void* input_buffer OPTIONAL,
+      ULONG input_buffer_length,
+      void* output_buffer OPTIONAL,
+      ULONG output_buffer_length,
+      PULONG return_output_buffer_length)
+    {
+      return static_cast<communication_port_driver*>(port_cookie)->on_message(input_buffer,
+        input_buffer_length,
+        output_buffer,
+        output_buffer_length,
+        return_output_buffer_length);
+    }
+
+    NTSTATUS connect(PFLT_PORT client_port_parameter,
+      void* /*connection_context*/,
+      ULONG /*size_of_context*/)
+    {
+      info_message(DRIVER, "connecting to communication port");
+      client_port = client_port_parameter;
+      return STATUS_SUCCESS;
+    }
+
+    void disconnect()
+    {
+      info_message(DRIVER, "disconnecting from communication port");
+      info_message(DRIVER, "closing client port");
+      FltCloseClientPort(filter, &client_port);
+      info_message(DRIVER, "client port closed");
+    }
+
+    NTSTATUS on_message(void* /*input_buffer */OPTIONAL,
+      ULONG /*input_buffer_length*/,
+      void* /*output_buffer */OPTIONAL,
+      ULONG /*output_buffer_length*/,
+      PULONG /*return_output_buffer_length*/)
+    {
+      info_message(DRIVER, "message");
+      return STATUS_SUCCESS;
+    }
+  private:
+    PFLT_PORT server_port;
+    PFLT_PORT client_port;
+  };
+
+
+  class top_driver final : public communication_port_driver
+  {
+  public:
+    top_driver(NTSTATUS& stat, PDRIVER_OBJECT driver) : communication_port_driver(stat, driver)
     {}
   };
 
