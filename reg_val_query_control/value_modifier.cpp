@@ -1,15 +1,47 @@
+#include "driver.h"
 #include "value_modifier.h"
+
+#include "tracing.h"
+#include "value_modifier.tmh"
 
 namespace value_modifier_cpp
 {
   class modifier_with_rules : public value_modifier::modifier
-  {};
+  {
+  public:
+  };
 
   class modifier_impl : public modifier_with_rules
   {
   public:
-    void modify(PCUNICODE_STRING& /*key_path*/, const reg_data_decoding::decoded_data& /*data*/)
-    {}
+    virtual void modify(const reg_data_decoding::decoded_data& data)
+    {
+      PCUNICODE_STRING key_path{nullptr};
+      modify(key_path, data);
+    }
+
+    void modify(PCUNICODE_STRING& key_path, const reg_data_decoding::decoded_data& data)
+    {
+      NTSTATUS stat{ key_path ? STATUS_SUCCESS : CmCallbackGetKeyObjectID(get_driver()->get_reg_cookie(), data.key_object, nullptr, &key_path) };
+
+      do
+      {
+        if (NT_SUCCESS(stat))
+        {
+          verbose_message(VALUE_MODIFIER, "key path is %wZ", key_path);
+        }
+        else
+        {
+          error_message(VALUE_MODIFIER, "CmCallbackGetKeyObjectID failed with status %!STATUS!", stat);
+          key_path = nullptr;
+          break;
+        }
+
+
+
+      } while (false);
+
+    }
   };
 
   class top_modifier final : public modifier_impl

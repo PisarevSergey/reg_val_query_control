@@ -40,19 +40,6 @@ namespace registry_dispatcher_cpp
 
     NTSTATUS callback(REG_NOTIFY_CLASS reg_op, void* reg_op_data)
     {
-      //{
-      //  PCUNICODE_STRING key_name{nullptr};
-      //  NTSTATUS stat{ CmCallbackGetKeyObjectID(get_driver()->get_reg_cookie(), static_cast<REG_POST_OPERATION_INFORMATION*>(reg_op_data)->Object, nullptr, &key_name) };
-      //  if (NT_SUCCESS(stat))
-      //  {
-      //    info_message(REGISTRY_DISPATCHER, "CmCallbackGetKeyObjectID success, key name is %wZ", key_name);
-      //  }
-      //  else
-      //  {
-      //    error_message(REGISTRY_DISPATCHER, "CmCallbackGetKeyObjectID failed with status %!STATUS!", stat);
-      //  }
-      //}
-
       switch (reg_op)
       {
       case RegNtPostQueryValueKey:
@@ -91,6 +78,7 @@ namespace registry_dispatcher_cpp
           if (NT_SUCCESS(stat))
           {
             verbose_message(REGISTRY_DISPATCHER, "successfully decoded data");
+            modif->modify(operation_data);
           }
           else
           {
@@ -185,6 +173,8 @@ namespace registry_dispatcher_cpp
           if (NT_SUCCESS(stat))
           {
             verbose_message(REGISTRY_DISPATCHER, "decoding success");
+            PCUNICODE_STRING key_path{ nullptr };
+            modif->modify(key_path, operation_data);
           }
           else
           {
