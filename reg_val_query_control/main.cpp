@@ -1,5 +1,4 @@
-#include "rvqc_common.h"
-#include "main.tmh"
+#include "driver.h"
 
 extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver, PUNICODE_STRING)
 {

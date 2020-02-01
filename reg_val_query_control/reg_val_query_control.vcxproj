@@ -152,7 +152,6 @@
     <ClInclude Include="driver.h" />
     <ClInclude Include="registry_dispatcher.h" />
     <ClInclude Include="reg_data_decoding.h" />
-    <ClInclude Include="rvqc_common.h" />
     <ClInclude Include="support.h" />
     <ClInclude Include="tracing.h" />
   </ItemGroup>

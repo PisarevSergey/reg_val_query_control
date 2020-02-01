@@ -1,9 +1,10 @@
 #pragma once
 
 #define WPP_CONTROL_GUIDS \
-    WPP_DEFINE_CONTROL_GUID(TraceGuid,(A567D4EA, 60CD, 4783, B2B3, 40867A2FD2A4),  \
-        WPP_DEFINE_BIT(MAIN)                                                       \
-        WPP_DEFINE_BIT(REGISTRY_DISPATCHER)                                        \
+    WPP_DEFINE_CONTROL_GUID(TraceGuid,(A567D4EA, 60CD, 4783, B2B3, 40867A2FD2A4), \
+        WPP_DEFINE_BIT(MAIN)                                                      \
+        WPP_DEFINE_BIT(REGISTRY_DISPATCHER)                                       \
+        WPP_DEFINE_BIT(REG_DATA_DECODING)                                         \
         WPP_DEFINE_BIT(DRIVER) )
 
 #define WPP_LEVEL_FLAGS_LOGGER(lvl,flags) \

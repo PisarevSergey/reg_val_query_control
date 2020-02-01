@@ -1,4 +1,4 @@
-#include "rvqc_common.h"
+#include "support.h"
 
 const void* support::align_up(const void* to_align_ptr, const ULONG alignment)
 {

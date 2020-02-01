@@ -1,9 +1,21 @@
-#include "rvqc_common.h"
+#include "driver.h"
+#include "registry_dispatcher.h"
+
+#include <smart_pointers.h>
+
+#include "tracing.h"
 #include "driver.tmh"
 
 namespace driver_cpp
 {
-  class wpp_tracing_driver : public driver
+  class memory_allocator_driver : public driver
+  {
+  public:
+    void* __cdecl operator new(size_t, void* p) { return p; }
+    void __cdecl operator delete(void*) {}
+  };
+
+  class wpp_tracing_driver : public memory_allocator_driver
   {
   public:
     wpp_tracing_driver()
@@ -141,17 +153,17 @@ namespace driver_cpp
   };
 
 
-  class top_driver : public fltmgr_driver
+  class top_driver final : public fltmgr_driver
   {
   public:
     top_driver(NTSTATUS& stat, PDRIVER_OBJECT driver) : fltmgr_driver(stat, driver)
     {}
-
-    void* __cdecl operator new(size_t, void* p) { return p; }
   };
 
   char driver_memory[sizeof(top_driver)];
 }
+
+driver::~driver() {}
 
 driver* get_driver()
 {

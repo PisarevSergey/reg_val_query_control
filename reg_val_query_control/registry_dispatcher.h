@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fltKernel.h>
+
 namespace registry_dispatcher
 {
   class dispatcher
@@ -7,9 +9,9 @@ namespace registry_dispatcher
   public:
     virtual NTSTATUS callback(REG_NOTIFY_CLASS reg_op, void* reg_op_data) = 0;
 
-    virtual ~dispatcher() {}
+    virtual ~dispatcher() = 0;
 
-    void __cdecl operator delete(void*) { ASSERT(FALSE); }
+    void __cdecl operator delete(void*);
   };
 
   dispatcher* create_dispatcher(NTSTATUS& stat);

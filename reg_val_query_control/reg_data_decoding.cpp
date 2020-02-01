@@ -1,4 +1,8 @@
-#include "rvqc_common.h"
+#include "reg_data_decoding.h"
+#include <safe_user_mode_data_access.h>
+
+#include "tracing.h"
+#include "reg_data_decoding.tmh"
 
 namespace reg_data_decoding_cpp
 {
@@ -108,28 +112,21 @@ NTSTATUS reg_data_decoding::decode_query_value_key_information(const REG_QUERY_V
 
   do
   {
-    const bool is_data_buffer_size_valid{user_mode_access ? safe_user_mode_data_access::is_valid_user_address(info->ResultLength, sizeof(*info->ResultLength)) : true};
-    if (is_data_buffer_size_valid)
+    ULONG max_info_buffer_size{ 0 };
+    stat = safe_user_mode_data_access::copy_data(&max_info_buffer_size,
+      sizeof(max_info_buffer_size),
+      info->ResultLength,
+      sizeof(*info->ResultLength),
+      user_mode_access);
+    if (NT_SUCCESS(stat))
     {
     }
     else
     {
-      stat = STATUS_INVALID_ADDRESS;
       break;
     }
 
-    ULONG max_info_buffer_size{ 0 };
-    __try
-    {
-      max_info_buffer_size = *info->ResultLength;
-    }
-    __except (EXCEPTION_EXECUTE_HANDLER)
-    {
-      stat = GetExceptionCode();
-      break;
-    }
-
-    const bool is_data_buffer_valid{user_mode_access ? safe_user_mode_data_access::is_valid_user_address(info->KeyValueInformation, max_info_buffer_size) : true};
+    const bool is_data_buffer_valid{user_mode_access ? safe_user_mode_data_access::is_valid_user_address(info->KeyValueInformation, max_info_buffer_size, false) : true};
     if (is_data_buffer_valid)
     {
     }
@@ -158,11 +155,66 @@ NTSTATUS reg_data_decoding::decode_query_value_key_information(const REG_QUERY_V
         data);
       break;
     default:
-      //ASSERT(FALSE);
+      ASSERT(FALSE);
       stat = STATUS_NOT_SUPPORTED;
     }
 
   } while (false);
+
+  return stat;
+}
+
+NTSTATUS reg_data_decoding::decode_single_value_entry(const REG_QUERY_MULTIPLE_VALUE_KEY_INFORMATION* info,
+  const KEY_VALUE_ENTRY* entry,
+  const char* values_start,
+  const char* values_end,
+  bool user_mode_access,
+  decoded_data& data)
+{
+  NTSTATUS stat{STATUS_SUCCESS};
+
+  __try
+  {
+    do
+    {
+      stat = safe_user_mode_data_access::copy_data(&data.value_name, sizeof(data.value_name), entry->ValueName, sizeof(*entry->ValueName), user_mode_access);
+      if (NT_SUCCESS(stat))
+      {
+      }
+      else
+      {
+        break;
+      }
+
+      if (!user_mode_access ||
+        safe_user_mode_data_access::is_valid_user_address(data.value_name.Buffer, data.value_name.Length))
+      {
+      }
+      else
+      {
+        break;
+      }
+
+      data.data_buffer = values_start + entry->DataOffset;
+      data.data_length = entry->DataLength;
+      if ((static_cast<const char*>(data.data_buffer) + data.data_length) <= values_end)
+      {
+      }
+      else
+      {
+        stat = STATUS_INVALID_PARAMETER;
+      }
+
+      data.key_object = info->Object;
+      data.data_type = entry->Type;
+
+    } while (false);
+
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    stat = GetExceptionCode();
+  }
 
   return stat;
 }
