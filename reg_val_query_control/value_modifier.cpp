@@ -26,7 +26,7 @@ namespace value_modifier_cpp
 
 value_modifier::modifier::~modifier() {}
 
-void __cdecl operator delete(void*)
+void __cdecl value_modifier::modifier::operator delete(void*)
 {}
 
 

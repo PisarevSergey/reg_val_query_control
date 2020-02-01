@@ -6,6 +6,8 @@
 #include "tracing.h"
 #include "driver.tmh"
 
+using win_kernel_lib::smart_pointers::auto_pointer;
+
 namespace driver_cpp
 {
   class memory_allocator_driver : public driver
@@ -47,7 +49,7 @@ namespace driver_cpp
     }
 
   protected:
-    win_kernel_lib::smart_pointers::auto_pointer<registry_dispatcher::dispatcher> reg_disp;
+    auto_pointer<registry_dispatcher::dispatcher> reg_disp;
   };
 
   class registry_callback_driver : public registry_dispatcher_driver

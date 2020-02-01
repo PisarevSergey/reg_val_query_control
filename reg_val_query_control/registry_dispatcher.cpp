@@ -1,16 +1,43 @@
 #include "registry_dispatcher.h"
 #include "reg_data_decoding.h"
+#include "value_modifier.h"
 
 #include <safe_user_mode_data_access.h>
+#include <smart_pointers.h>
 
 #include "tracing.h"
 #include "registry_dispatcher.tmh"
 
+using win_kernel_lib::safe_user_mode_data_access::copy_data;
+using win_kernel_lib::safe_user_mode_data_access::is_valid_user_address;
+using win_kernel_lib::smart_pointers::auto_pointer;
+
 namespace registry_dispatcher_cpp
 {
-  class registry_dispatcher_impl : public registry_dispatcher::dispatcher
+  class registry_dispatcher_with_modifier : public registry_dispatcher::dispatcher
   {
   public:
+    registry_dispatcher_with_modifier(NTSTATUS& stat) : modif{ value_modifier::create_modifier(stat) }
+    {
+      if (NT_SUCCESS(stat))
+      {
+        info_message(REGISTRY_DISPATCHER, "value_modifier::create_modifier success");
+      }
+      else
+      {
+        error_message(REGISTRY_DISPATCHER, "value_modifier::create_modifier failed with status %!STATUS!", stat);
+      }
+    }
+  protected:
+    auto_pointer<value_modifier::modifier> modif;
+  };
+
+  class registry_dispatcher_impl : public registry_dispatcher_with_modifier
+  {
+  public:
+    registry_dispatcher_impl(NTSTATUS& stat) : registry_dispatcher_with_modifier(stat)
+    {}
+
     NTSTATUS callback(REG_NOTIFY_CLASS reg_op, void* reg_op_data)
     {
       //{
@@ -102,7 +129,7 @@ namespace registry_dispatcher_cpp
         verbose_message(REGISTRY_DISPATCHER, "%s mode access", (user_mode_access ? "user" : "kernel"));
 
         if (!user_mode_access ||
-            safe_user_mode_data_access::is_valid_user_address(pre_info->ValueEntries, value_entries_size))
+            is_valid_user_address(pre_info->ValueEntries, value_entries_size))
         {
           verbose_message(REGISTRY_DISPATCHER, "value entries buffer valid");
         }
@@ -113,7 +140,7 @@ namespace registry_dispatcher_cpp
         }
 
         ULONG max_buffer_size{ 0 };
-        NTSTATUS stat{ safe_user_mode_data_access::copy_data(&max_buffer_size,
+        NTSTATUS stat{ copy_data(&max_buffer_size,
             sizeof(max_buffer_size),
             pre_info->BufferLength,
             sizeof(*pre_info->BufferLength),
@@ -129,7 +156,7 @@ namespace registry_dispatcher_cpp
         }
 
         if ((!user_mode_access) ||
-          safe_user_mode_data_access::is_valid_user_address(pre_info->ValueBuffer, max_buffer_size, false))
+          is_valid_user_address(pre_info->ValueBuffer, max_buffer_size, false))
         {
           verbose_message(REGISTRY_DISPATCHER, "value buffer valid");
         }
@@ -173,6 +200,9 @@ namespace registry_dispatcher_cpp
   class top_dispatcher final : public registry_dispatcher_impl
   {
   public:
+    top_dispatcher(NTSTATUS& stat) : registry_dispatcher_impl(stat)
+    {}
+
     void* __cdecl operator new(size_t, void* p)
     {
       return p;
@@ -189,6 +219,18 @@ void __cdecl registry_dispatcher::dispatcher::operator delete(void*)
 
 registry_dispatcher::dispatcher* registry_dispatcher::create_dispatcher(NTSTATUS& stat)
 {
-  stat = STATUS_SUCCESS;
-  return new (registry_dispatcher_cpp::registry_dispatcher_memory) registry_dispatcher_cpp::top_dispatcher;
+  auto p{ new (registry_dispatcher_cpp::registry_dispatcher_memory) registry_dispatcher_cpp::top_dispatcher(stat) };
+
+  if (NT_SUCCESS(stat))
+  {
+    info_message(REGISTRY_DISPATCHER, "registry dispatcher create success");
+  }
+  else
+  {
+    error_message(REGISTRY_DISPATCHER, "registry dispatcher create failed with status %!STATUS!", stat);
+    delete p;
+    p = nullptr;
+  }
+
+  return p;
 }

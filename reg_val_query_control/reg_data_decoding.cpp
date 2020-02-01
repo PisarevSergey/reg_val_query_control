@@ -5,6 +5,9 @@
 #include "tracing.h"
 #include "reg_data_decoding.tmh"
 
+using win_kernel_lib::safe_user_mode_data_access::copy_data;
+using win_kernel_lib::safe_user_mode_data_access::is_valid_user_address;
+
 namespace reg_data_decoding_cpp
 {
   NTSTATUS decode_value_full_information(KEY_VALUE_FULL_INFORMATION* info,
@@ -142,7 +145,7 @@ NTSTATUS reg_data_decoding::decode_query_value_key_information(const REG_QUERY_V
   do
   {
     ULONG max_info_buffer_size{ 0 };
-    stat = safe_user_mode_data_access::copy_data(&max_info_buffer_size,
+    stat = copy_data(&max_info_buffer_size,
       sizeof(max_info_buffer_size),
       info->ResultLength,
       sizeof(*info->ResultLength),
@@ -157,7 +160,7 @@ NTSTATUS reg_data_decoding::decode_query_value_key_information(const REG_QUERY_V
       break;
     }
 
-    const bool is_data_buffer_valid{user_mode_access ? safe_user_mode_data_access::is_valid_user_address(info->KeyValueInformation, max_info_buffer_size, false) : true};
+    const bool is_data_buffer_valid{user_mode_access ? is_valid_user_address(info->KeyValueInformation, max_info_buffer_size, false) : true};
     if (is_data_buffer_valid)
     {
       verbose_message(REG_DATA_DECODING, "data buffer is valid");
@@ -204,7 +207,7 @@ NTSTATUS reg_data_decoding::decode_query_value_key_information(const REG_QUERY_V
       break;
     }
 
-    stat = safe_user_mode_data_access::copy_data(&data.value_name, sizeof(data.value_name), info->ValueName, sizeof(*info->ValueName), user_mode_access);
+    stat = copy_data(&data.value_name, sizeof(data.value_name), info->ValueName, sizeof(*info->ValueName), user_mode_access);
     if (NT_SUCCESS(stat))
     {
       verbose_message(REG_DATA_DECODING, "value name copy success");
@@ -235,7 +238,7 @@ NTSTATUS reg_data_decoding::decode_single_value_entry(const REG_QUERY_MULTIPLE_V
   {
     do
     {
-      stat = safe_user_mode_data_access::copy_data(&data.value_name, sizeof(data.value_name), entry->ValueName, sizeof(*entry->ValueName), user_mode_access);
+      stat = copy_data(&data.value_name, sizeof(data.value_name), entry->ValueName, sizeof(*entry->ValueName), user_mode_access);
       if (NT_SUCCESS(stat))
       {
         verbose_message(REG_DATA_DECODING, "value name copy success");
@@ -247,7 +250,7 @@ NTSTATUS reg_data_decoding::decode_single_value_entry(const REG_QUERY_MULTIPLE_V
       }
 
       if (!user_mode_access ||
-        safe_user_mode_data_access::is_valid_user_address(data.value_name.Buffer, data.value_name.Length))
+        is_valid_user_address(data.value_name.Buffer, data.value_name.Length))
       {
         verbose_message(REG_DATA_DECODING, "value name buffer valid");
       }
