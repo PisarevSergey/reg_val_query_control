@@ -173,28 +173,22 @@ namespace registry_dispatcher_cpp
   class top_dispatcher final : public registry_dispatcher_impl
   {
   public:
-    void* __cdecl operator new(size_t sz)
+    void* __cdecl operator new(size_t, void* p)
     {
-      return ExAllocatePoolWithTag(NonPagedPool, sz, 'sidR');
+      return p;
     }
   };
+
+  char registry_dispatcher_memory[sizeof(top_dispatcher)];
 }
 
 registry_dispatcher::dispatcher::~dispatcher() {}
 
-void __cdecl registry_dispatcher::dispatcher::operator delete(void* p)
-{
-  if (p)
-  {
-    ExFreePool(p);
-  }
-}
+void __cdecl registry_dispatcher::dispatcher::operator delete(void*)
+{}
 
 registry_dispatcher::dispatcher* registry_dispatcher::create_dispatcher(NTSTATUS& stat)
 {
-  auto p{new registry_dispatcher_cpp::top_dispatcher};
-
-  stat = (p ? STATUS_SUCCESS : STATUS_INSUFFICIENT_RESOURCES);
-
-  return p;
+  stat = STATUS_SUCCESS;
+  return new (registry_dispatcher_cpp::registry_dispatcher_memory) registry_dispatcher_cpp::top_dispatcher;
 }
