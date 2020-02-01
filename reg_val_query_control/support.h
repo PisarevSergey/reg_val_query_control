@@ -4,5 +4,6 @@
 
 namespace support
 {
-  const void* align_up(const void* to_align_ptr, const ULONG alignment);
+  const wchar_t* get_reg_value_type_name(ULONG type);
+  const wchar_t* get_value_information_class_name(KEY_VALUE_INFORMATION_CLASS info_class);
 }

@@ -1,5 +1,6 @@
 #include "reg_data_decoding.h"
 #include <safe_user_mode_data_access.h>
+#include "support.h"
 
 #include "tracing.h"
 #include "reg_data_decoding.tmh"
@@ -18,19 +19,26 @@ namespace reg_data_decoding_cpp
       if ((data_offset + data_length) <= max_info_buffer_size)
       {
         data.data_buffer = (reinterpret_cast<char*>(info) + data_offset);
-        data.data_type = info->Type;
+        verbose_message(REG_DATA_DECODING, "data starts at %p", data.data_buffer);
+
         data.data_length = data_length;
+        verbose_message(REG_DATA_DECODING, "data length is %x", data.data_length);
+
+        data.data_type = info->Type;
+        verbose_message(REG_DATA_DECODING, "value type is %S", support::get_reg_value_type_name(data.data_type));
 
         stat = STATUS_SUCCESS;
       }
       else
       {
+        error_message(REG_DATA_DECODING, "invalid sizes, data offset is %x, data length is %x, buffer size is %x", data_offset, data_length, max_info_buffer_size);
         stat = STATUS_INVALID_BUFFER_SIZE;
       }
     }
     __except (EXCEPTION_EXECUTE_HANDLER)
     {
       stat = GetExceptionCode();
+      error_message(REG_DATA_DECODING, "failed with status %!STATUS!", stat);
     }
 
     return stat;
@@ -46,24 +54,34 @@ namespace reg_data_decoding_cpp
     {
       const ULONG data_length{ info->DataLength };
       data.data_buffer = info->Data;
-      const ULONG_PTR end_of_buffer{ reinterpret_cast<ULONG_PTR>(data.data_buffer) + data_length };
-      const ULONG_PTR start_of_buffer{reinterpret_cast<ULONG_PTR>(info)};
+      verbose_message(REG_DATA_DECODING, "data starts at %p", data.data_buffer);
 
-      if ((end_of_buffer - start_of_buffer) <= max_info_buffer_size)
+      const ULONG_PTR end_of_data{ reinterpret_cast<ULONG_PTR>(data.data_buffer) + data_length };
+      verbose_message(REG_DATA_DECODING, "data ends before %llu", end_of_data);
+
+      const ULONG_PTR start_of_buffer{reinterpret_cast<ULONG_PTR>(info)};
+      verbose_message(REG_DATA_DECODING, "buffer starts at %llu", start_of_buffer);
+
+      if ((end_of_data - start_of_buffer) <= max_info_buffer_size)
       {
         data.data_type = info->Type;
+        verbose_message(REG_DATA_DECODING, "data type is %S", support::get_reg_value_type_name(data.data_type));
+
         data.data_length = data_length;
+        verbose_message(REG_DATA_DECODING, "data length is %x", data.data_length);
 
         stat = STATUS_SUCCESS;
       }
       else
       {
+        error_message(REG_DATA_DECODING, "wrong buffer size");
         stat = STATUS_INVALID_BUFFER_SIZE;
       }
     }
     __except (EXCEPTION_EXECUTE_HANDLER)
     {
       stat = GetExceptionCode();
+      error_message(REG_DATA_DECODING, "failed with status %!STATUS!", stat);
     }
 
     return stat;
@@ -77,26 +95,37 @@ namespace reg_data_decoding_cpp
 
     __try
     {
-      const ULONG data_length{ info->DataLength };
       data.data_buffer = info->Data;
-      const ULONG_PTR end_of_buffer{ reinterpret_cast<ULONG_PTR>(data.data_buffer) + data_length };
-      const ULONG_PTR start_of_buffer{ reinterpret_cast<ULONG_PTR>(info) };
+      verbose_message(REG_DATA_DECODING, "data starts at %p", data.data_buffer);
 
-      if ((end_of_buffer - start_of_buffer) <= max_info_buffer_size)
+      const ULONG_PTR start_of_buffer{ reinterpret_cast<ULONG_PTR>(info) };
+      verbose_message(REG_DATA_DECODING, "buffer starts at %llu", start_of_buffer);
+
+      const ULONG data_length{ info->DataLength };
+      verbose_message(REG_DATA_DECODING, "data length is %x", data_length);
+
+      const ULONG_PTR end_of_data{ reinterpret_cast<ULONG_PTR>(data.data_buffer) + data_length };
+      verbose_message(REG_DATA_DECODING, "data ends before %llu", end_of_data);
+
+      if ((end_of_data - start_of_buffer) <= max_info_buffer_size)
       {
         data.data_type = info->Type;
+        verbose_message(REG_DATA_DECODING, "value type is %S", support::get_reg_value_type_name(data.data_type));
+
         data.data_length = data_length;
 
         stat = STATUS_SUCCESS;
       }
       else
       {
+        error_message(REG_DATA_DECODING, "wrong buffer sizes");
         stat = STATUS_INVALID_BUFFER_SIZE;
       }
     }
     __except (EXCEPTION_EXECUTE_HANDLER)
     {
       stat = GetExceptionCode();
+      error_message(REG_DATA_DECODING, "failed with stastus %!STATUS!", stat);
     }
 
     return stat;
@@ -120,21 +149,27 @@ NTSTATUS reg_data_decoding::decode_query_value_key_information(const REG_QUERY_V
       user_mode_access);
     if (NT_SUCCESS(stat))
     {
+      verbose_message(REG_DATA_DECODING, "max info buffer size is %x", max_info_buffer_size);
     }
     else
     {
+      error_message(REG_DATA_DECODING, "safe_user_mode_data_access::copy_data failed with status %!STATUS!", stat);
       break;
     }
 
     const bool is_data_buffer_valid{user_mode_access ? safe_user_mode_data_access::is_valid_user_address(info->KeyValueInformation, max_info_buffer_size, false) : true};
     if (is_data_buffer_valid)
     {
+      verbose_message(REG_DATA_DECODING, "data buffer is valid");
     }
     else
     {
+      error_message(REG_DATA_DECODING, "ivalid data buffer");
       stat = STATUS_INVALID_ADDRESS;
       break;
     }
+
+    verbose_message(REG_DATA_DECODING, "value information class is %S", support::get_value_information_class_name(info->KeyValueInformationClass));
 
     switch (info->KeyValueInformationClass)
     {
@@ -159,6 +194,29 @@ NTSTATUS reg_data_decoding::decode_query_value_key_information(const REG_QUERY_V
       stat = STATUS_NOT_SUPPORTED;
     }
 
+    if (NT_SUCCESS(stat))
+    {
+      verbose_message(REG_DATA_DECODING, "data decoding success");
+    }
+    else
+    {
+      error_message(REG_DATA_DECODING, "data decoding failed with status %!STATUS!", stat);
+      break;
+    }
+
+    stat = safe_user_mode_data_access::copy_data(&data.value_name, sizeof(data.value_name), info->ValueName, sizeof(*info->ValueName), user_mode_access);
+    if (NT_SUCCESS(stat))
+    {
+      verbose_message(REG_DATA_DECODING, "value name copy success");
+    }
+    else
+    {
+      error_message(REG_DATA_DECODING, "failed to copy value name with status %!STATUS!", stat);
+      break;
+    }
+
+    data.key_object = info->Object;
+
   } while (false);
 
   return stat;
@@ -180,33 +238,44 @@ NTSTATUS reg_data_decoding::decode_single_value_entry(const REG_QUERY_MULTIPLE_V
       stat = safe_user_mode_data_access::copy_data(&data.value_name, sizeof(data.value_name), entry->ValueName, sizeof(*entry->ValueName), user_mode_access);
       if (NT_SUCCESS(stat))
       {
+        verbose_message(REG_DATA_DECODING, "value name copy success");
       }
       else
       {
+        error_message(REG_DATA_DECODING, "failed to copy value name with status %!STATUS!", stat);
         break;
       }
 
       if (!user_mode_access ||
         safe_user_mode_data_access::is_valid_user_address(data.value_name.Buffer, data.value_name.Length))
       {
+        verbose_message(REG_DATA_DECODING, "value name buffer valid");
       }
       else
       {
+        error_message(REG_DATA_DECODING, "value name buffer invalid");
         break;
       }
 
       data.data_buffer = values_start + entry->DataOffset;
+      verbose_message(REG_DATA_DECODING, "data starts at %p", data.data_buffer);
+
       data.data_length = entry->DataLength;
+      verbose_message(REG_DATA_DECODING, "data length is %x", data.data_length);
+
       if ((static_cast<const char*>(data.data_buffer) + data.data_length) <= values_end)
       {
+        verbose_message(REG_DATA_DECODING, "data buffer size valid");
       }
       else
       {
+        error_message(REG_DATA_DECODING, "data buffer size invalid");
         stat = STATUS_INVALID_PARAMETER;
       }
 
       data.key_object = info->Object;
       data.data_type = entry->Type;
+      verbose_message(REG_DATA_DECODING, "value data type is %S", support::get_reg_value_type_name(data.data_type));
 
     } while (false);
 
@@ -214,6 +283,7 @@ NTSTATUS reg_data_decoding::decode_single_value_entry(const REG_QUERY_MULTIPLE_V
   __except (EXCEPTION_EXECUTE_HANDLER)
   {
     stat = GetExceptionCode();
+    error_message(REG_DATA_DECODING, "failed with status %!STATUS!", stat);
   }
 
   return stat;
