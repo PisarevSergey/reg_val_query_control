@@ -1,7 +1,5 @@
 #pragma once
 
-#include <fltKernel.h>
-
 namespace registry_dispatcher
 {
   class dispatcher

@@ -1,4 +1,4 @@
-#include "support.h"
+#include "common.h"
 
 const wchar_t* support::get_reg_value_type_name(ULONG type)
 {

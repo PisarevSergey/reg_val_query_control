@@ -1,7 +1,5 @@
 #pragma once
 
-#include "reg_data_decoding.h"
-
 namespace value_modifier
 {
   class modifier

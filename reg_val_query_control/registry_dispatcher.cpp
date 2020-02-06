@@ -1,11 +1,4 @@
-#include "registry_dispatcher.h"
-#include "reg_data_decoding.h"
-#include "value_modifier.h"
-
-#include <safe_user_mode_data_access.h>
-#include <smart_pointers.h>
-
-#include "tracing.h"
+#include "common.h"
 #include "registry_dispatcher.tmh"
 
 using win_kernel_lib::safe_user_mode_data_access::copy_data;

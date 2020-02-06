@@ -1,7 +1,5 @@
 #pragma once
 
-#include <fltKernel.h>
-
 namespace reg_data_decoding
 {
   struct decoded_data

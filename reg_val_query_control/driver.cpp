@@ -1,11 +1,4 @@
-#include "driver.h"
-#include "registry_dispatcher.h"
-
-#include <smart_pointers.h>
-
-#include <um_km_common.h>
-
-#include "tracing.h"
+#include "common.h"
 #include "driver.tmh"
 
 using win_kernel_lib::smart_pointers::auto_pointer;

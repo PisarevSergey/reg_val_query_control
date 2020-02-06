@@ -1,7 +1,5 @@
 #pragma once
 
-#include <fltKernel.h>
-
 namespace support
 {
   const wchar_t* get_reg_value_type_name(ULONG type);

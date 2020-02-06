@@ -1,8 +1,4 @@
-#include "reg_data_decoding.h"
-#include <safe_user_mode_data_access.h>
-#include "support.h"
-
-#include "tracing.h"
+#include "common.h"
 #include "reg_data_decoding.tmh"
 
 using win_kernel_lib::safe_user_mode_data_access::copy_data;

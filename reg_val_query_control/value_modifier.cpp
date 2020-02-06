@@ -1,7 +1,4 @@
-#include "driver.h"
-#include "value_modifier.h"
-
-#include "tracing.h"
+#include "common.h"
 #include "value_modifier.tmh"
 
 namespace value_modifier_cpp
