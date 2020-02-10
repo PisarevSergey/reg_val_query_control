@@ -203,16 +203,41 @@ NTSTATUS reg_data_decoding::decode_query_value_key_information(const REG_QUERY_V
       break;
     }
 
-    stat = copy_data(&data.value_name, sizeof(data.value_name), info->ValueName, sizeof(*info->ValueName), user_mode_access);
+    auto_unicode_string val_name_copy{static_cast<UNICODE_STRING*>(ExAllocatePoolWithTag(PagedPool, sizeof(UNICODE_STRING) + info->ValueName->Length, 'sqvR'))};
+    if (val_name_copy.get())
+    {
+      verbose_message(REG_DATA_DECODING, "memory allocation for value name success");
+    }
+    else
+    {
+      stat = STATUS_INSUFFICIENT_RESOURCES;
+      error_message(REG_DATA_DECODING, "failed to allocate memory for value name");
+      break;
+    }
+
+    val_name_copy->Length = 0;
+    val_name_copy->MaximumLength = info->ValueName->Length;
+    val_name_copy->Buffer = static_cast<wchar_t*>(Add2Ptr(val_name_copy.get(), sizeof(UNICODE_STRING)));
+
+    __try
+    {
+      RtlCopyUnicodeString(val_name_copy.get(), info->ValueName);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+      stat = GetExceptionCode();
+    }
+
     if (NT_SUCCESS(stat))
     {
-      verbose_message(REG_DATA_DECODING, "value name copy success");
+      verbose_message(REG_DATA_DECODING, "copy value name success");
     }
     else
     {
       error_message(REG_DATA_DECODING, "failed to copy value name with status %!STATUS!", stat);
       break;
     }
+    data.value_name.reset(val_name_copy.release());
 
     data.key_object = info->Object;
 
@@ -230,11 +255,19 @@ NTSTATUS reg_data_decoding::decode_single_value_entry(const REG_QUERY_MULTIPLE_V
 {
   NTSTATUS stat{STATUS_SUCCESS};
 
+  auto_unicode_string local_unicode_string;
+
   __try
   {
     do
     {
-      stat = copy_data(&data.value_name, sizeof(data.value_name), entry->ValueName, sizeof(*entry->ValueName), user_mode_access);
+      UNICODE_STRING value_name_local_copy;
+
+      stat = copy_data(&value_name_local_copy,
+        sizeof(value_name_local_copy),
+        entry->ValueName,
+        sizeof(*entry->ValueName),
+        user_mode_access);
       if (NT_SUCCESS(stat))
       {
         verbose_message(REG_DATA_DECODING, "value name copy success");
@@ -246,15 +279,36 @@ NTSTATUS reg_data_decoding::decode_single_value_entry(const REG_QUERY_MULTIPLE_V
       }
 
       if (!user_mode_access ||
-        is_valid_user_address(data.value_name.Buffer, data.value_name.Length))
+        is_valid_user_address(value_name_local_copy.Buffer,
+          value_name_local_copy.Length))
       {
         verbose_message(REG_DATA_DECODING, "value name buffer valid");
       }
       else
       {
         error_message(REG_DATA_DECODING, "value name buffer invalid");
+        stat = STATUS_INVALID_PARAMETER;
         break;
       }
+
+      local_unicode_string.reset(static_cast<UNICODE_STRING*>(ExAllocatePoolWithTag(PagedPool, sizeof(UNICODE_STRING) + value_name_local_copy.Length, 'sqvR')));
+      if (local_unicode_string.get())
+      {
+        verbose_message(REG_DATA_DECODING, "value name memory allocated");
+      }
+      else
+      {
+        stat = STATUS_INSUFFICIENT_RESOURCES;
+        error_message(REG_DATA_DECODING, "value name memory allocation failed");
+        break;
+      }
+
+      local_unicode_string->Length = 0;
+      local_unicode_string->MaximumLength = value_name_local_copy.Length;
+      local_unicode_string->Buffer = static_cast<wchar_t*>(Add2Ptr(local_unicode_string.get(), sizeof(UNICODE_STRING)));
+      RtlCopyUnicodeString(local_unicode_string.get(), &value_name_local_copy);
+
+      data.value_name.reset(local_unicode_string.release());
 
       data.data_buffer = values_start + entry->DataOffset;
       verbose_message(REG_DATA_DECODING, "data starts at %p", data.data_buffer);
@@ -270,6 +324,7 @@ NTSTATUS reg_data_decoding::decode_single_value_entry(const REG_QUERY_MULTIPLE_V
       {
         error_message(REG_DATA_DECODING, "data buffer size invalid");
         stat = STATUS_INVALID_PARAMETER;
+        break;
       }
 
       data.key_object = info->Object;

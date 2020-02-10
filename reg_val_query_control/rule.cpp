@@ -1,7 +1,9 @@
 #include "common.h"
 
-rule_facility::rule::rule(auto_pointer<UNICODE_STRING, pool_deleter>& src_str) noexcept : reg_key_path{src_str.release()}
-{}
+void rule_facility::rule::set_reg_key(auto_pointer<UNICODE_STRING, pool_deleter>& reg_key_param) noexcept
+{
+  reg_key_path.reset(reg_key_param.release());
+}
 
 void* __cdecl rule_facility::rule::operator new(size_t sz, void* p) noexcept
 {
@@ -13,3 +15,17 @@ void* __cdecl rule_facility::rule::operator new(size_t sz, void* p) noexcept
 
 void __cdecl rule_facility::rule::operator delete(void*) noexcept
 {}
+
+bool rule_facility::operator<(const rule& a, const rule& b)
+{
+  return (RtlCompareUnicodeString(a.reg_key_path.get(), \
+    b.reg_key_path.get(), \
+    TRUE) < 0);
+}
+
+bool rule_facility::operator>(const rule& a, const rule& b)
+{
+  return (RtlCompareUnicodeString(a.reg_key_path.get(), \
+    b.reg_key_path.get(), \
+    TRUE) > 0);
+}

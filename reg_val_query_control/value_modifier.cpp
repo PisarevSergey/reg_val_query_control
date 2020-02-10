@@ -6,12 +6,28 @@ namespace value_modifier_cpp
   class modifier_with_rules : public value_modifier::modifier
   {
   public:
+    static void* alloc(CLONG size)
+    {
+      return ExAllocatePoolWithTag(PagedPool, size, 'eluR');
+    }
+
+    static void free(void* p)
+    {
+      if (p)
+      {
+        ExFreePool(p);
+      }
+    }
+
+  private:
+    win_kernel_lib::avl_list_facility::avl_list<rule_facility::rule, alloc, free> rules;
+    win_kernel_lib::locks::eresource rules_guard;
   };
 
   class modifier_impl : public modifier_with_rules
   {
   public:
-    virtual void modify(const reg_data_decoding::decoded_data& data)
+    void modify(const reg_data_decoding::decoded_data& data) override
     {
       PCUNICODE_STRING key_path{nullptr};
       modify(key_path, data);

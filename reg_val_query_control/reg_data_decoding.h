@@ -2,10 +2,12 @@
 
 namespace reg_data_decoding
 {
+  using auto_unicode_string = win_kernel_lib::smart_pointers::auto_pointer<UNICODE_STRING, win_kernel_lib::deleters::pool_deleter>;
+
   struct decoded_data
   {
     void* key_object;
-    UNICODE_STRING value_name;
+    auto_unicode_string value_name;
     const void* data_buffer;
     ULONG data_type;
     ULONG data_length;
