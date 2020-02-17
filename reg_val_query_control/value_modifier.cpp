@@ -27,13 +27,13 @@ namespace value_modifier_cpp
   class modifier_impl : public modifier_with_rules
   {
   public:
-    void modify(const reg_data_decoding::decoded_data& data) override
+    void modify(reg_data_decoding::decoded_data& data) override
     {
       PCUNICODE_STRING key_path{nullptr};
       modify(key_path, data);
     }
 
-    void modify(PCUNICODE_STRING& key_path, const reg_data_decoding::decoded_data& data)
+    void modify(PCUNICODE_STRING& key_path, reg_data_decoding::decoded_data& data) override
     {
       NTSTATUS stat{ key_path ? STATUS_SUCCESS : CmCallbackGetKeyObjectID(get_driver()->get_reg_cookie(), data.key_object, nullptr, &key_path) };
 
