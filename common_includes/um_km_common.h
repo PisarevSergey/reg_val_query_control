@@ -22,7 +22,7 @@ namespace um_km_common
 
     void* first_byte_after_string()
     {
-      return win_kernel_lib::pointer_manipulation::add_to_ptr<void, wchar_t>(get_buffer(), buffer_size_in_bytes);
+      return (reinterpret_cast<char*>(get_buffer()) + buffer_size_in_bytes);
     }
   };
   static_assert(2 == sizeof(counted_string), "wrong size");

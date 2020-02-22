@@ -10,6 +10,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "reg_val_query_control", "re
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_kernel_lib", "win_kernel_lib\win_kernel_lib.vcxproj", "{9B91AAA6-078A-40AF-9AE5-470AA68A9672}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "regum", "regum\regum.vcxproj", "{97119500-1E1A-4438-9C4E-A8C46240A243}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -42,6 +44,14 @@ Global
 		{9B91AAA6-078A-40AF-9AE5-470AA68A9672}.Release|x86.ActiveCfg = Release|Win32
 		{9B91AAA6-078A-40AF-9AE5-470AA68A9672}.Release|x86.Build.0 = Release|Win32
 		{9B91AAA6-078A-40AF-9AE5-470AA68A9672}.Release|x86.Deploy.0 = Release|Win32
+		{97119500-1E1A-4438-9C4E-A8C46240A243}.Debug|x64.ActiveCfg = Debug|x64
+		{97119500-1E1A-4438-9C4E-A8C46240A243}.Debug|x64.Build.0 = Debug|x64
+		{97119500-1E1A-4438-9C4E-A8C46240A243}.Debug|x86.ActiveCfg = Debug|Win32
+		{97119500-1E1A-4438-9C4E-A8C46240A243}.Debug|x86.Build.0 = Debug|Win32
+		{97119500-1E1A-4438-9C4E-A8C46240A243}.Release|x64.ActiveCfg = Release|x64
+		{97119500-1E1A-4438-9C4E-A8C46240A243}.Release|x64.Build.0 = Release|x64
+		{97119500-1E1A-4438-9C4E-A8C46240A243}.Release|x86.ActiveCfg = Release|Win32
+		{97119500-1E1A-4438-9C4E-A8C46240A243}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
