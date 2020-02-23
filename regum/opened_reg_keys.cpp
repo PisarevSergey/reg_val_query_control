@@ -22,6 +22,16 @@ namespace opened_reg_keys_cpp
         }
       }
     }
+
+    void get_keys_and_vals(std::list<reg_key::naked_key_and_vals>& keys_info) override
+    {
+      for (const auto& c : collection)
+      {
+        reg_key::naked_key_and_vals current_key_and_vals;
+        c->get_key_and_vals(current_key_and_vals);
+        keys_info.push_back(std::move(current_key_and_vals));
+      }
+    }
   private:
     std::list<std::unique_ptr<reg_key::key>> collection;
   };

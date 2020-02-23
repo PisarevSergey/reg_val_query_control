@@ -31,16 +31,15 @@ namespace um_km_common
 
   struct key_rule_header
   {
-    fixed_size_handle root_key_object;
+    fixed_size_handle key;
     unsigned __int32 number_of_values;
-    counted_string relative_key_name;
 
     counted_string* get_first_value_name()
     {
-      return static_cast<counted_string*>(relative_key_name.first_byte_after_string());
+      return reinterpret_cast<counted_string*>(this + 1);
     }
   };
-  static_assert(14 == sizeof(key_rule_header), "wrong size");
+  static_assert(12 == sizeof(key_rule_header), "wrong size");
 
   enum class request_type : unsigned __int8
   {

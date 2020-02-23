@@ -14,8 +14,8 @@
 
 #include "support.h"
 #include "ntdll.h"
-#include "opened_reg_keys.h"
 #include "reg_key.h"
+#include "opened_reg_keys.h"
 
 using std::wcout;
 using std::endl;

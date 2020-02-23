@@ -55,6 +55,7 @@ namespace reg_key_cpp
         CloseHandle(key);
       }
     }
+
   protected:
     HKEY key;
   private:
@@ -104,6 +105,12 @@ namespace reg_key_cpp
       {
         RegDeleteValueW(key, cur_value_name.c_str());
       }
+    }
+
+    void get_key_and_vals(reg_key::naked_key_and_vals& n_key_and_vals) override
+    {
+      n_key_and_vals.key = key;
+      n_key_and_vals.value_names = value_names;
     }
   private:
     std::list<std::wstring> value_names;
