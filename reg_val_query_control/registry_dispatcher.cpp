@@ -21,6 +21,11 @@ namespace registry_dispatcher_cpp
         error_message(REGISTRY_DISPATCHER, "value_modifier::create_modifier failed with status %!STATUS!", stat);
       }
     }
+
+    NTSTATUS set_rules(unsigned __int32 number_of_rules, um_km_common::key_rule_header* rules, ULONG rules_size)
+    {
+      return modif->set_rules(number_of_rules, rules, rules_size);
+    }
   protected:
     auto_pointer<value_modifier::modifier> modif;
   };

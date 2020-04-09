@@ -6,6 +6,8 @@
         WPP_DEFINE_BIT(REGISTRY_DISPATCHER)                                       \
         WPP_DEFINE_BIT(REG_DATA_DECODING)                                         \
         WPP_DEFINE_BIT(VALUE_MODIFIER)                                            \
+        WPP_DEFINE_BIT(SUPPORT)                                                   \
+        WPP_DEFINE_BIT(RULE)                                                      \
         WPP_DEFINE_BIT(DRIVER) )
 
 #define WPP_LEVEL_FLAGS_LOGGER(lvl,flags) \

@@ -251,14 +251,83 @@ namespace driver_cpp
       info_message(DRIVER, "client port closed");
     }
 
-    NTSTATUS on_message(void* /*input_buffer */OPTIONAL,
-      ULONG /*input_buffer_length*/,
+    NTSTATUS on_message(void* input_buffer OPTIONAL,
+      ULONG input_buffer_length,
       void* /*output_buffer */OPTIONAL,
       ULONG /*output_buffer_length*/,
-      PULONG /*return_output_buffer_length*/)
+      PULONG return_output_buffer_length)
     {
-      info_message(DRIVER, "message");
-      return STATUS_SUCCESS;
+      info_message(DRIVER, "user-mode message callback");
+
+      NTSTATUS stat{ STATUS_SUCCESS };
+
+      void* km_message_copy{ nullptr };
+
+      do
+      {
+        if (input_buffer_length >= sizeof(um_km_common::request))
+        {
+          verbose_message(DRIVER, "user-mode request may be valid");
+        }
+        else
+        {
+          error_message(DRIVER, "user-mode buffer too small, invalid request");
+          stat = STATUS_INVALID_PARAMETER;
+          break;
+        }
+
+        __try
+        {
+          ProbeForRead(input_buffer, input_buffer_length, 1);
+          verbose_message(DRIVER, "user-mode message memory probe success");
+
+          km_message_copy = ExAllocatePoolWithTag(PagedPool, input_buffer_length, 'pcmK');
+          if (km_message_copy)
+          {
+            verbose_message(DRIVER, "allocated %x bytes at %p for kernel copy of user buffer", input_buffer_length, km_message_copy);
+          }
+          else
+          {
+            error_message(DRIVER, "failed to allocate memory for kernel copy of user buffer");
+            stat = STATUS_INSUFFICIENT_RESOURCES;
+            break;
+          }
+
+          RtlCopyMemory(km_message_copy, input_buffer, input_buffer_length);
+          verbose_message(DRIVER, "copy user-mode message to kernel buffer success");
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+          stat = GetExceptionCode();
+          error_message(DRIVER, "user mode buffer dispatching failed with status %!STATUS!", stat);
+          break;
+        }
+
+        ASSERT(km_message_copy);
+
+        switch (static_cast<um_km_common::request*>(km_message_copy)->rt)
+        {
+        case um_km_common::request_type::set_rules:
+          stat = reg_disp->set_rules(static_cast<um_km_common::request*>(km_message_copy)->request_fixed_part_header.rh.number_of_rules,
+            static_cast<um_km_common::key_rule_header*>(static_cast<um_km_common::request*>(km_message_copy)->get_request_specific_data()),
+            input_buffer_length - sizeof(um_km_common::request));
+          *return_output_buffer_length = 0;
+          break;
+        default:
+          stat = STATUS_INVALID_PARAMETER;
+          error_message(DRIVER, "invalid request");
+          break;
+        }
+
+      } while (false);
+
+      if (km_message_copy)
+      {
+        ExFreePool(km_message_copy);
+        km_message_copy = nullptr;
+      }
+
+      return stat;
     }
   private:
     PFLT_PORT server_port;

@@ -11,8 +11,9 @@ namespace rule_facility
   {
   public:
     void set_reg_key(auto_pointer<UNICODE_STRING, pool_deleter>& reg_key_param) noexcept;
+    NTSTATUS add_value_name(auto_pointer<UNICODE_STRING, pool_deleter>& value_name) noexcept;
 
-    void* __cdecl operator new(size_t, void*) noexcept;
+    void* __cdecl operator new(size_t) noexcept;
     void __cdecl operator delete(void*) noexcept;
 
     friend bool operator<(const rule& a, const rule& b);

@@ -20,9 +20,19 @@ namespace um_km_common
       return reinterpret_cast<wchar_t*>(this + 1);
     }
 
+    const wchar_t* get_buffer() const
+    {
+      return reinterpret_cast<const wchar_t*>(this + 1);
+    }
+
     void* first_byte_after_string()
     {
       return (reinterpret_cast<char*>(get_buffer()) + buffer_size_in_bytes);
+    }
+
+    const void* first_byte_after_string() const
+    {
+      return (reinterpret_cast<const char*>(get_buffer()) + buffer_size_in_bytes);
     }
   };
   static_assert(2 == sizeof(counted_string), "wrong size");
@@ -38,8 +48,20 @@ namespace um_km_common
     {
       return reinterpret_cast<counted_string*>(this + 1);
     }
+
+
+    const counted_string* get_first_value_name() const
+    {
+      return reinterpret_cast<const counted_string*>(this + 1);
+    }
   };
   static_assert(12 == sizeof(key_rule_header), "wrong size");
+
+  struct rules_header
+  {
+    unsigned __int32 number_of_rules;
+  };
+  static_assert(4 == sizeof(rules_header), "wrong size");
 
   enum class request_type : unsigned __int8
   {
@@ -50,13 +72,21 @@ namespace um_km_common
   struct request
   {
     request_type rt;
+    union
+    {
+      rules_header rh;
+    } request_fixed_part_header;
 
     void* get_request_specific_data()
     {
       return (this + 1);
     }
+
+    const void* get_request_specific_data() const
+    {
+      return (this + 1);
+    }
   };
-  static_assert(sizeof(request::rt) == sizeof(request), "wrong size");
 
 #include <poppack.h>
 

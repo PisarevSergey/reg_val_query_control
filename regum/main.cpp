@@ -59,7 +59,7 @@ int wmain(int argc, wchar_t* argv[])
     keys->get_keys_and_vals(keys_info);
 
     um_km_common::request* rules{ nullptr };
-    size_t rule_buffer_size{ sizeof(*rules) };
+    auto rule_buffer_size{ sizeof(*rules) };
     for (const auto& c : keys_info)
     {
       rule_buffer_size += sizeof(um_km_common::key_rule_header);
@@ -79,6 +79,7 @@ int wmain(int argc, wchar_t* argv[])
     auto current_position{static_cast<char*>(rules->get_request_specific_data())};
     for (const auto& c : keys_info)
     {
+      ++rules->request_fixed_part_header.rh.number_of_rules;
       um_km_common::key_rule_header* k_r_h{reinterpret_cast<um_km_common::key_rule_header*>(current_position)};
       k_r_h->key.handle_val = c.key;
       k_r_h->number_of_values = 0;
@@ -96,7 +97,7 @@ int wmain(int argc, wchar_t* argv[])
     assert((request_buffer.get() + rule_buffer_size) == current_position);
 
     DWORD returned;
-    result = FilterSendMessage(*port.get(), rules, rule_buffer_size, nullptr, 0, &returned);
+    result = FilterSendMessage(*port.get(), rules, static_cast<DWORD>(rule_buffer_size), nullptr, 0, &returned);
     if (S_OK != result)
     {
       wcout << L"FilterSendMessage failed with result " << result << endl;

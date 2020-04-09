@@ -1,4 +1,7 @@
 #include "common.h"
+#include "support.tmh"
+
+using win_kernel_lib::pointer_manipulation::add_to_ptr;
 
 const wchar_t* support::get_reg_value_type_name(ULONG type)
 {
@@ -91,4 +94,58 @@ const wchar_t* support::get_value_information_class_name(KEY_VALUE_INFORMATION_C
   }
 
   return name;
+}
+
+bool support::is_entity_inside_buffer(const void* base, const void* first_byte_after_buffer, const void* entity_base, size_t entity_size)
+{
+  auto inside{ false };
+
+  if ((entity_base >= base) &&
+      (add_to_ptr<const void, const void>(entity_base, entity_size) <= first_byte_after_buffer))
+  {
+    inside = true;
+  }
+
+  return inside;
+}
+
+NTSTATUS support::query_name_for_user_mode_key_handle(HANDLE user_mode_key_handle, auto_pointer<UNICODE_STRING, pool_deleter>& key_path)
+{
+  void* key_object{ nullptr };
+  NTSTATUS stat { ObReferenceObjectByHandle(user_mode_key_handle, 0, *CmKeyObjectType, UserMode, &key_object, nullptr) };
+  if (NT_SUCCESS(stat))
+  {
+    verbose_message(SUPPORT, "ObReferenceObjectByHandle success");
+
+    PCUNICODE_STRING key_name{ nullptr };
+    stat = CmCallbackGetKeyObjectID(get_driver()->get_reg_cookie(), key_object, nullptr, &key_name);
+    if (NT_SUCCESS(stat))
+    {
+      verbose_message(SUPPORT, "key name is %wZ", key_name);
+
+      key_path.reset(win_kernel_lib::unicode_strings::createStringCopy(*key_name, 'mnkR'));
+      if (key_path.get())
+      {
+        ASSERT(NT_SUCCESS(stat));
+        verbose_message(SUPPORT, "successfully allocated unicode string for key name");
+      }
+      else
+      {
+        stat = STATUS_INSUFFICIENT_RESOURCES;
+        error_message(SUPPORT, "failed to allocate unicode string for key name");
+      }
+    }
+    else
+    {
+      error_message(SUPPORT, "CmCallbackGetKeyObjectID failed with status %!STATUS!", stat);
+    }
+
+    ObDereferenceObject(key_object);
+  }
+  else
+  {
+    error_message(SUPPORT, "ObReferenceObjectByHandle failed with status %!STATUS!", stat);
+  }
+
+  return stat;
 }
