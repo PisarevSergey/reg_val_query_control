@@ -10,5 +10,6 @@
 #include "rule.h"
 #include "support.h"
 #include "value_modifier.h"
+#include "rule_manager.h"
 
 #include "tracing.h"

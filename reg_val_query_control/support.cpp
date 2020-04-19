@@ -109,7 +109,7 @@ bool support::is_entity_inside_buffer(const void* base, const void* first_byte_a
   return inside;
 }
 
-NTSTATUS support::query_name_for_user_mode_key_handle(HANDLE user_mode_key_handle, auto_pointer<UNICODE_STRING, pool_deleter>& key_path)
+NTSTATUS support::query_name_for_user_mode_key_handle(HANDLE user_mode_key_handle, auto_pointer<const UNICODE_STRING, pool_deleter>& key_path)
 {
   void* key_object{ nullptr };
   NTSTATUS stat { ObReferenceObjectByHandle(user_mode_key_handle, 0, *CmKeyObjectType, UserMode, &key_object, nullptr) };

@@ -3,11 +3,18 @@
 
 using win_kernel_lib::string_facility::string;
 
-void rule_facility::rule::set_reg_key(auto_pointer<UNICODE_STRING, pool_deleter>& reg_key_param) noexcept
+rule_facility::rule::rule() : value_names{ &val_names_allocator }
+{}
+
+void rule_facility::rule::set_reg_key(auto_pointer<const UNICODE_STRING, pool_deleter>& reg_key_param) noexcept
 {
   reg_key_path.reset(reg_key_param.release());
 }
 
+void rule_facility::rule::set_reg_key(const UNICODE_STRING* reg_key_param) noexcept
+{
+  reg_key_path.reset(reg_key_param);
+}
 
 NTSTATUS rule_facility::rule::add_value_name(auto_pointer<UNICODE_STRING, pool_deleter>& value_name) noexcept
 {
@@ -18,7 +25,8 @@ NTSTATUS rule_facility::rule::add_value_name(auto_pointer<UNICODE_STRING, pool_d
   {
     val_string->reset(value_name.release());
 
-    auto inserted{ value_names.insert(val_string) };
+    bool inserted{false};
+    value_names.insert(val_string, inserted);
     if (inserted)
     {
       stat = STATUS_SUCCESS;
@@ -36,17 +44,22 @@ NTSTATUS rule_facility::rule::add_value_name(auto_pointer<UNICODE_STRING, pool_d
   return stat;
 }
 
-void* rule_facility::rule::alloc_paged(CLONG size)
+void* rule_facility::value_names_allocator::allocate(CLONG size)
 {
   return ExAllocatePoolWithTag(PagedPool, size, 'elaV');
 }
 
-void rule_facility::rule::free(void* p)
+void rule_facility::value_names_allocator::deallocate(void* p)
 {
   if (p)
   {
     ExFreePool(p);
   }
+}
+
+void* __cdecl rule_facility::rule::operator new(size_t, void* p) noexcept
+{
+  return p;
 }
 
 void* __cdecl rule_facility::rule::operator new(size_t sz) noexcept

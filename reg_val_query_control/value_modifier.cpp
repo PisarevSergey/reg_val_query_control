@@ -9,17 +9,13 @@ namespace value_modifier_cpp
   class modifier_with_rules : public value_modifier::modifier
   {
   public:
-    static void* alloc(CLONG size)
-    {
-      return ExAllocatePoolWithTag(PagedPool, size, 'eluR');
-    }
+    modifier_with_rules(NTSTATUS& stat) : r_manager{ rule_manager::create_ruler(stat) }
+    {}
 
-    static void free(void* p)
+    ~modifier_with_rules()
     {
-      if (p)
-      {
-        ExFreePool(p);
-      }
+      delete r_manager;
+      r_manager = nullptr;
     }
 
     NTSTATUS set_rules(unsigned __int32 number_of_rules, um_km_common::key_rule_header* rules_from_um, ULONG rules_size) override
@@ -38,7 +34,7 @@ namespace value_modifier_cpp
           break;
         }
 
-        auto_pointer<UNICODE_STRING, pool_deleter> key_path;
+        auto_pointer<const UNICODE_STRING, pool_deleter> key_path;
         stat = support::query_name_for_user_mode_key_handle(static_cast<const um_km_common::key_rule_header*>(current_position)->key.handle_val, key_path);
         if (NT_SUCCESS(stat))
         {
@@ -119,10 +115,7 @@ namespace value_modifier_cpp
           break;
         }
 
-        rules_guard.lock_exclusive();
-        auto rule_inserted = rules.insert(r);
-        rules_guard.release();
-        if (rule_inserted)
+        if (r_manager->add_rule_to_list(r))
         {
           FLT_ASSERT(NT_SUCCESS(stat));
           verbose_message(VALUE_MODIFIER, "rule successfully inserted in rule list");
@@ -149,13 +142,15 @@ namespace value_modifier_cpp
     }
 
   private:
-    win_kernel_lib::avl_list_facility::avl_list<rule_facility::rule, alloc, free> rules;
-    win_kernel_lib::locks::eresource rules_guard;
+    rule_manager::ruler* r_manager;
   };
 
   class modifier_impl : public modifier_with_rules
   {
   public:
+    modifier_impl(NTSTATUS& stat) : modifier_with_rules{ stat }
+    {}
+
     void modify(reg_data_decoding::decoded_data& data) override
     {
       PCUNICODE_STRING key_path{nullptr};
@@ -189,6 +184,9 @@ namespace value_modifier_cpp
   class top_modifier final : public modifier_impl
   {
   public:
+    top_modifier(NTSTATUS& stat) : modifier_impl{ stat }
+    {}
+
     void* __cdecl operator new(size_t, void* p)
     {
       return p;
@@ -207,5 +205,15 @@ void __cdecl value_modifier::modifier::operator delete(void*)
 value_modifier::modifier* value_modifier::create_modifier(NTSTATUS& stat)
 {
   stat = STATUS_SUCCESS;
-  return new (value_modifier_cpp::modifier_memory) value_modifier_cpp::top_modifier;
+  auto m{ new (value_modifier_cpp::modifier_memory) value_modifier_cpp::top_modifier{stat} };
+  if (NT_SUCCESS(stat))
+  {
+  }
+  else
+  {
+    delete m;
+    m = nullptr;
+  }
+
+  return m;
 }
