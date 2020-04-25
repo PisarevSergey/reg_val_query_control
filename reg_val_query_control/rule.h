@@ -14,8 +14,10 @@ namespace rule_facility
     void deallocate(void* p);
   };
 
-  class rule final
+  class rule final : public win_kernel_lib::refcounted_object::base<rule>
   {
+    friend class win_kernel_lib::deleters::default_deleter<rule>;
+
   public:
     rule();
 
@@ -25,15 +27,17 @@ namespace rule_facility
 
     void* __cdecl operator new(size_t, void* p) noexcept;
     void* __cdecl operator new(size_t) noexcept;
-    void __cdecl operator delete(void*) noexcept;
 
     friend bool operator<(const rule& a, const rule& b);
     friend bool operator>(const rule& a, const rule& b);
 
   private:
+    void __cdecl operator delete(void*) noexcept;
+
+  private:
     value_names_allocator val_names_allocator;
     auto_pointer<const UNICODE_STRING, pool_deleter> reg_key_path;
-    avl_list<string, value_names_allocator> value_names;
+    avl_list<string, value_names_allocator, win_kernel_lib::deleters::default_deleter<string>> value_names;
   };
 
   bool operator<(const rule& a, const rule& b);

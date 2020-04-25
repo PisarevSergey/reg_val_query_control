@@ -31,15 +31,16 @@ namespace
 
       bool inserted{false};
       auto in_list_entry = rules.insert(r, inserted);
+      if (inserted)
+      {
+        r->reference();
+      }
+
       if (in_list_entry)
       {
         rule_in_list = *in_list_entry;
         ASSERT(rule_in_list);
-      }
-
-      if (!inserted)
-      {
-        delete r;
+        rule_in_list->reference();
       }
 
       return rule_in_list;
@@ -62,7 +63,9 @@ namespace
 
   private:
     list_entry_allocator rule_entry_allocator;
-    win_kernel_lib::avl_list_facility::avl_list<rule_facility::rule, list_entry_allocator> rules;
+    win_kernel_lib::avl_list_facility::avl_list<rule_facility::rule,
+      list_entry_allocator,
+    win_kernel_lib::deleters::referenced_object_deleter<rule_facility::rule>> rules;
   };
 
   class guarded_ruler_with_rules : public unsafe_ruler_with_rules

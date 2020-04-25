@@ -3,6 +3,8 @@
 
 using support::is_entity_inside_buffer;
 using win_kernel_lib::string_facility::string;
+using win_kernel_lib::smart_pointers::auto_pointer;
+using win_kernel_lib::deleters::referenced_object_deleter;
 
 namespace value_modifier_cpp
 {
@@ -46,8 +48,8 @@ namespace value_modifier_cpp
           break;
         }
 
-        rule_facility::rule* r{ new rule_facility::rule };
-        if (r)
+        auto_pointer<rule_facility::rule, referenced_object_deleter<rule_facility::rule>> r{ new rule_facility::rule };
+        if (r.get())
         {
           info_message(VALUE_MODIFIER, "rule allocated");
         }
@@ -111,20 +113,20 @@ namespace value_modifier_cpp
         else
         {
           stat = STATUS_INVALID_PARAMETER;
-          delete r;
           break;
         }
 
-        if (r_manager->add_rule_to_list(r))
+        auto rule_in_list{ r_manager->add_rule_to_list(r.get()) };
+        if (rule_in_list)
         {
           FLT_ASSERT(NT_SUCCESS(stat));
           verbose_message(VALUE_MODIFIER, "rule successfully inserted in rule list");
+          rule_in_list->dereference();
         }
         else
         {
           error_message(VALUE_MODIFIER, "failed to insert rule in list");
           stat = STATUS_INSUFFICIENT_RESOURCES;
-          delete r;
           break;
         }
 
