@@ -48,7 +48,7 @@ namespace value_modifier_cpp
           break;
         }
 
-        auto_pointer<rule_facility::rule, referenced_object_deleter<rule_facility::rule>> r{ new rule_facility::rule };
+        auto_pointer<rule_facility::rule, referenced_object_deleter<rule_facility::rule>> r{ rule_facility::rule::create_rule() };
         if (r.get())
         {
           info_message(VALUE_MODIFIER, "rule allocated");

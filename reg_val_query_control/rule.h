@@ -19,6 +19,8 @@ namespace rule_facility
     friend class win_kernel_lib::deleters::default_deleter<rule>;
 
   public:
+    static rule* create_rule() { return new rule; }
+
     rule();
 
     void set_reg_key(auto_pointer<const UNICODE_STRING, pool_deleter>& reg_key_param) noexcept;
@@ -26,13 +28,14 @@ namespace rule_facility
     NTSTATUS add_value_name(auto_pointer<UNICODE_STRING, pool_deleter>& value_name) noexcept;
 
     void* __cdecl operator new(size_t, void* p) noexcept;
-    void* __cdecl operator new(size_t) noexcept;
 
     friend bool operator<(const rule& a, const rule& b);
     friend bool operator>(const rule& a, const rule& b);
 
   private:
+    void* __cdecl operator new(size_t) noexcept;
     void __cdecl operator delete(void*) noexcept;
+    ~rule() {}
 
   private:
     value_names_allocator val_names_allocator;
