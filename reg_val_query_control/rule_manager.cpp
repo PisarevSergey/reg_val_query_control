@@ -46,14 +46,22 @@ namespace
       return rule_in_list;
     }
 
-    bool is_rule_in_list_unsafe(const UNICODE_STRING* key_path)
+    rule_facility::rule* get_referenced_rule_from_list_unsafe(const UNICODE_STRING* key_path)
     {
       rule_facility::rule* search_rule{ nullptr };
       char search_rule_mem[sizeof(*search_rule)];
       search_rule = new(search_rule_mem) rule_facility::rule;
       search_rule->set_reg_key(key_path);
 
-      return (rules.get_element_by_key(search_rule) ? true : false);
+      auto found_list_element{ rules.get_element_by_key(search_rule) };
+
+      rule_facility::rule* found_rule{ found_list_element ? *found_list_element : nullptr };
+      if (found_rule)
+      {
+        found_rule->reference();
+      }
+
+      return found_rule;
     }
 
     void clear_rules_unsafe()
@@ -80,13 +88,13 @@ namespace
       return rule_in_list;
     }
 
-    bool is_rule_in_list(const UNICODE_STRING* key_path)
+    rule_facility::rule* get_referenced_rule_from_list(const UNICODE_STRING* key_path)
     {
-      bool in_list;
       rules_guard.lock_shared();
-      in_list = is_rule_in_list_unsafe(key_path);
+      auto referenced_found_rule{ get_referenced_rule_from_list_unsafe(key_path) };
       rules_guard.release();
-      return in_list;
+
+      return referenced_found_rule;
     }
 
     void clear_rules()

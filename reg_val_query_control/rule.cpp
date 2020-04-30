@@ -77,6 +77,24 @@ void __cdecl rule_facility::rule::operator delete(void* p) noexcept
   }
 }
 
+bool rule_facility::rule::is_value_in_rule(const UNICODE_STRING& value_to_search)
+{
+  bool in_list{ false };
+
+  win_kernel_lib::string_facility::string* search_string{ nullptr };
+  char search_string_memory[sizeof(*search_string)];
+
+  search_string = new(search_string_memory)string;
+  search_string->reset(const_cast<UNICODE_STRING*>(&value_to_search));
+
+  if (value_names.get_element_by_key(search_string))
+  {
+    in_list = true;
+  }
+
+  return in_list;
+}
+
 bool rule_facility::operator<(const rule& a, const rule& b)
 {
   return (RtlCompareUnicodeString(a.reg_key_path.get(), \

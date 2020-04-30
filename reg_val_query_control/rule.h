@@ -27,6 +27,8 @@ namespace rule_facility
     void set_reg_key(const UNICODE_STRING* reg_key_param) noexcept;
     NTSTATUS add_value_name(auto_pointer<UNICODE_STRING, pool_deleter>& value_name) noexcept;
 
+    bool is_value_in_rule(const UNICODE_STRING& value_name_to_search);
+
     void* __cdecl operator new(size_t, void* p) noexcept;
 
     friend bool operator<(const rule& a, const rule& b);

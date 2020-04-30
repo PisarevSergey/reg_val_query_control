@@ -143,7 +143,7 @@ namespace value_modifier_cpp
       return stat;
     }
 
-  private:
+  protected:
     rule_manager::ruler* r_manager;
   };
 
@@ -176,8 +176,30 @@ namespace value_modifier_cpp
           break;
         }
 
+        auto_pointer<rule_facility::rule,
+          referenced_object_deleter<rule_facility::rule>> rule_from_list{ r_manager->get_referenced_rule_from_list(key_path) };
+        if (rule_from_list.get())
+        {
+          info_message(VALUE_MODIFIER, "rule for %wZ is in list", key_path);
+        }
+        else
+        {
+          verbose_message(VALUE_MODIFIER, "no rule for %wZ", key_path);
+          break;
+        }
+
+        if (rule_from_list->is_value_in_rule(*data.value_name.get()))
+        {
+          info_message(VALUE_MODIFIER, "value %wZ is in rule", data.value_name.get());
+        }
+        else
+        {
+          verbose_message(VALUE_MODIFIER, "value %wZ is not in rule", data.value_name.get());
+          break;
+        }
 
 
+        //do actual modification;
       } while (false);
 
     }

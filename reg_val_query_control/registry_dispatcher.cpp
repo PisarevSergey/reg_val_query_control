@@ -158,9 +158,10 @@ namespace registry_dispatcher_cpp
         const char* const value_buffer_end{ value_buffer_start + max_buffer_size };
         verbose_message(REGISTRY_DISPATCHER, "value buffer ends before %p", value_buffer_end);
 
-        reg_data_decoding::decoded_data operation_data;
+        PCUNICODE_STRING key_path{ nullptr };
         for (decltype(pre_info->EntryCount) i{ 0 }; i < pre_info->EntryCount; ++i)
         {
+          reg_data_decoding::decoded_data operation_data;
           verbose_message(REGISTRY_DISPATCHER, "decoding entry number %x", i);
           stat = reg_data_decoding::decode_single_value_entry(pre_info,
             pre_info->ValueEntries + i,
@@ -171,7 +172,6 @@ namespace registry_dispatcher_cpp
           if (NT_SUCCESS(stat))
           {
             verbose_message(REGISTRY_DISPATCHER, "decoding success");
-            PCUNICODE_STRING key_path{ nullptr };
             modif->modify(key_path, operation_data);
           }
           else
