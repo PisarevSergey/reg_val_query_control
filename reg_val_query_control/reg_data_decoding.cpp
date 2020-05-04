@@ -248,7 +248,7 @@ NTSTATUS reg_data_decoding::decode_query_value_key_information(const REG_QUERY_V
 
 NTSTATUS reg_data_decoding::decode_single_value_entry(const REG_QUERY_MULTIPLE_VALUE_KEY_INFORMATION* info,
   const KEY_VALUE_ENTRY* entry,
-  const char* values_start,
+  char* values_start,
   const char* values_end,
   bool user_mode_access,
   decoded_data& data)

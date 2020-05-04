@@ -152,7 +152,7 @@ namespace registry_dispatcher_cpp
           break;
         }
 
-        const char* const value_buffer_start{ reinterpret_cast<char*>(pre_info->ValueBuffer) };
+        char* const value_buffer_start{ reinterpret_cast<char*>(pre_info->ValueBuffer) };
         verbose_message(REGISTRY_DISPATCHER, "value buffer starts at %p", value_buffer_start);
 
         const char* const value_buffer_end{ value_buffer_start + max_buffer_size };

@@ -8,7 +8,7 @@ namespace reg_data_decoding
   {
     void* key_object;
     auto_unicode_string value_name;
-    const void* data_buffer;
+    void* data_buffer;
     ULONG data_type;
     ULONG data_length;
   };
@@ -19,7 +19,7 @@ namespace reg_data_decoding
 
   NTSTATUS decode_single_value_entry(const REG_QUERY_MULTIPLE_VALUE_KEY_INFORMATION* info,
     const KEY_VALUE_ENTRY* entry,
-    const char* values_start,
+    char* values_start,
     const char* values_end,
     bool user_mode_access,
     decoded_data& data);

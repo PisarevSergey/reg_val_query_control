@@ -198,8 +198,48 @@ namespace value_modifier_cpp
           break;
         }
 
+        if (REG_DWORD == data.data_type)
+        {
+          verbose_message(VALUE_MODIFIER, "value type we want");
+        }
+        else
+        {
+          verbose_message(VALUE_MODIFIER, "not the value type we want");
+          break;
+        }
 
-        //do actual modification;
+        static constexpr ULONG value_to_return{ 1 };
+        static constexpr ULONG value_to_modify{ 0 };
+        static_assert(sizeof(value_to_return) == sizeof(value_to_modify), "wrong size");
+        if (sizeof(value_to_modify) == data.data_length)
+        {
+          verbose_message(VALUE_MODIFIER, "correct value size");
+        }
+        else
+        {
+          error_message(VALUE_MODIFIER, "wrong value size");
+          break;
+        }
+
+        __try
+        {
+          if (sizeof(value_to_modify) == RtlCompareMemory(data.data_buffer, &value_to_modify, sizeof(value_to_modify)))
+          {
+            verbose_message(VALUE_MODIFIER, "we want to modify this value");
+            RtlCopyMemory(data.data_buffer, &value_to_return, sizeof(value_to_return));
+            verbose_message(VALUE_MODIFIER, "we modified this value");
+          }
+          else
+          {
+            verbose_message(VALUE_MODIFIER, "we don't want to modify this value");
+          }
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+          auto exception_status{ GetExceptionCode() };
+          error_message(VALUE_MODIFIER, "failed to modify value with status %!STATUS!", exception_status);
+        }
+
       } while (false);
 
     }
