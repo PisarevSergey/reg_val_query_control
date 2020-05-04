@@ -107,6 +107,18 @@ namespace reg_key_cpp
       }
     }
 
+    void read_values()
+    {
+      DWORD value_type;
+      DWORD data;
+
+      for (const auto& current_value_name : value_names)
+      {
+        DWORD data_size{sizeof(data)};
+        RegQueryValueExW(key, current_value_name.c_str(), nullptr, &value_type, reinterpret_cast<BYTE*>(&data), &data_size);
+      }
+    }
+
     void get_key_and_vals(reg_key::naked_key_and_vals& n_key_and_vals) override
     {
       n_key_and_vals.key = key;

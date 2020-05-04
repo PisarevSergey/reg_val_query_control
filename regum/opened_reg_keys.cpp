@@ -32,6 +32,15 @@ namespace opened_reg_keys_cpp
         keys_info.push_back(std::move(current_key_and_vals));
       }
     }
+
+    void read_values()
+    {
+      for (const auto& current_key : collection)
+      {
+        current_key->read_values();
+      }
+    }
+
   private:
     std::list<std::unique_ptr<reg_key::key>> collection;
   };

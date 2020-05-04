@@ -6,6 +6,7 @@ namespace opened_reg_keys
   {
   public:
     virtual void get_keys_and_vals(std::list<reg_key::naked_key_and_vals>& keys_info) = 0;
+    virtual void read_values() = 0;
     virtual ~keys() = 0;
   };
 

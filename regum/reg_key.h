@@ -12,6 +12,7 @@ namespace reg_key
   {
   public:
     virtual void get_key_and_vals(naked_key_and_vals& n_key_and_vals) = 0;
+    virtual void read_values() = 0;
     virtual ~key() = 0;
   };
 
