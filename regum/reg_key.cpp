@@ -12,7 +12,7 @@ namespace reg_key_cpp
       if (RPC_S_OK == status)
       {
         DWORD disposition;
-        error = RegCreateKeyExW(HKEY_CURRENT_USER, key_name.c_str(), 0, nullptr, 0, KEY_QUERY_VALUE | KEY_SET_VALUE, nullptr, &key, &disposition);
+        error = RegCreateKeyExW(HKEY_CURRENT_USER, key_name.c_str(), 0, nullptr, 0, KEY_QUERY_VALUE | KEY_SET_VALUE | DELETE, nullptr, &key, &disposition);
         if (ERROR_SUCCESS == error)
         {
           wcout << L"RegCreateKeyExW success" << endl;
