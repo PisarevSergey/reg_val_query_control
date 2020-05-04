@@ -313,6 +313,9 @@ namespace driver_cpp
             input_buffer_length - sizeof(um_km_common::request));
           *return_output_buffer_length = 0;
           break;
+        case um_km_common::request_type::clear_rules:
+          reg_disp->clear_rules();
+          break;
         default:
           stat = STATUS_INVALID_PARAMETER;
           error_message(DRIVER, "invalid request");

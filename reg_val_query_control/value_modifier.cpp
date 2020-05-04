@@ -143,6 +143,11 @@ namespace value_modifier_cpp
       return stat;
     }
 
+    void clear_rules()
+    {
+      r_manager->clear_rules();
+    }
+
   protected:
     rule_manager::ruler* r_manager;
   };

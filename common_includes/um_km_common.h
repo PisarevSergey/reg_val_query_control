@@ -66,7 +66,8 @@ namespace um_km_common
   enum class request_type : unsigned __int8
   {
     invalid = 0,
-    set_rules
+    set_rules,
+    clear_rules
   };
 
   struct request

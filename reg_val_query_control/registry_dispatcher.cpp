@@ -26,6 +26,11 @@ namespace registry_dispatcher_cpp
     {
       return modif->set_rules(number_of_rules, rules, rules_size);
     }
+
+    void clear_rules()
+    {
+      modif->clear_rules();
+    }
   protected:
     auto_pointer<value_modifier::modifier> modif;
   };
