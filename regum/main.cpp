@@ -25,7 +25,7 @@ int wmain(int argc, wchar_t* argv[])
       break;
     }
 
-    std::wstring number_of_keys_to_create{ argv[1] }, number_of_values_per_key{ argv[2] };
+    const std::wstring number_of_keys_to_create{ argv[1] }, number_of_values_per_key{ argv[2] };
 
     wcout << L"need to create " << number_of_keys_to_create << L" keys" << endl;
     wcout << L"each key will have " << number_of_values_per_key << L" values" << endl;
